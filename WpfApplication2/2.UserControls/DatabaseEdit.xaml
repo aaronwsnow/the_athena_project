@@ -1,0 +1,229 @@
+﻿<UserControl x:Class="DatabaseEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:The_Athena_Project"
+             xmlns:controls="clr-namespace:MatrixBasic;assembly=MatrixBasic"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+  
+    <Grid Name="Main_Grid" >
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="100" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+
+        <ScrollBar Name="Scroll_Rows" Orientation="Vertical" Grid.Column="1" Grid.Row="0" Grid.RowSpan="6" Width="20" />
+        <ScrollBar Name="Scroll_Columns" Orientation="Horizontal" Grid.Row="5" Grid.Column="0" Height="20" />
+
+
+        <Grid Name="Grid_Mode_Bar" Grid.Row="0" Grid.Column="0" >
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label Name="LB_Mode" Grid.Row="0" Grid.Column="0" Content="Mode" BorderThickness="3,0,3,3" />
+            <controls:ButtonX  x:Name="Mode_Button" Grid.Column="1" Grid.Row="0" Text="Update" />
+
+            <Label Name="LB_Scope" Grid.Row="0" Grid.Column="2" Content="Scope" BorderThickness="3,0,3,3" />
+            <controls:ButtonX x:Name="Scope_Button" Grid.Column="3" Grid.Row="0" Text="Cluster" />
+
+        </Grid>
+
+
+        <Grid Name="Grid_Address_Bar" Grid.Row="1" Grid.Column="0" >
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Label Name="LB_Cluster" Grid.Row="0" Grid.Column="0" Content="Cluster" BorderThickness="3,0,3,3" />
+
+            <Border Name="Border_Cluster" Grid.Row="0" Grid.Column="1" BorderThickness="3,0,3,3" >
+                <TextBox Name="TB_Cluster" VerticalAlignment="Center" BorderThickness="0"/>
+            </Border>
+
+            <Label Name="LB_Database" Grid.Row="0" Grid.Column="2" Content="Database" BorderThickness="3,0,3,3" />
+
+            <Border Name="Border_Database" Grid.Row="0" Grid.Column="3" BorderThickness="3,0,3,3" >
+                <TextBox Name="TB_Database" VerticalAlignment="Center" BorderThickness="0"/>
+            </Border>
+
+            <Label Name="LB_Table" Grid.Row="0" Grid.Column="4"  Content="Table" BorderThickness="3,0,3,3" />
+
+            <Border Name="Border_Table" Grid.Row="0" Grid.Column="5" BorderThickness="3,0,3,3">
+                <TextBox Name="TB_Table" VerticalAlignment="Center" BorderThickness="0"/>
+            </Border>
+
+        </Grid>
+
+
+        <Grid Name="Grid_Search_Bar" Grid.Row="2" Grid.Column="0" Visibility="Collapsed" Margin="1,6,1,3" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Name="Border_LB_SearchInput" Grid.Row="0" Grid.Column="0" BorderThickness="3,3,3,3" VerticalAlignment="Stretch">
+                <Label Name="LB_SearchInput" Content="Search" BorderThickness="0" VerticalAlignment="Center" />
+            </Border>
+
+            <Border Name="Border_TB_SearchInput" Grid.Row="0" Grid.Column="1" BorderThickness="3,3,3,3" VerticalAlignment="Stretch">
+                <TextBox Name="TB_SearchInput"  VerticalAlignment="Center"  BorderThickness="0"/>
+            </Border>
+
+            <Border  Name="Border_LB_SearchType" Grid.Row="0" Grid.Column="2" BorderThickness="3,3,3,3" VerticalAlignment="Stretch">
+                <Label Name="LB_SearchType"  Content="Search Type" BorderThickness="0" VerticalAlignment="Center" />
+            </Border>
+
+            <controls:Spinner x:Name="SP_SearchType"  Grid.Row="0" Grid.Column="3"  IsCounter="False" />
+
+            <Border Name="Border_LB_SearchAddress" Grid.Row="1" Grid.Column="0" BorderThickness="3,0,3,3" VerticalAlignment="Stretch">
+                <Label Name="LB_SearchAddress"  Content="Address" BorderThickness="0" VerticalAlignment="Center" />
+            </Border>
+
+            <controls:Spinner x:Name="SP_SearchAddress" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" ShowSpin="True" IsCounter="False" ShowIndex="True" />
+
+        </Grid>
+
+
+        <TextBox Name="TB_Editor" Grid.Row="3" Grid.Column="0" AcceptsReturn="True" BorderThickness="0" Margin="0,0,0,10"  ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" />
+
+        <GridSplitter Name="Main_Splitter" Grid.Row="3" Grid.Column="0" Height="10" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" />
+
+        <!-- Cells -->
+        
+        <Grid Name="Display_Grid" Grid.Row="4" Grid.Column="0" >
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <controls:ButtonX Grid.Column="0" Grid.Row="0" x:Name="BT_x0y0_Header" />
+            <TextBox Name="TB_x0y0_Corner" Grid.Column="0" Grid.Row="1" BorderThickness="1" IsReadOnly="True" />
+            <TextBox Name="TB_x0y1" Grid.Column="0" Grid.Row="2" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y2" Grid.Column="0" Grid.Row="3" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y3" Grid.Column="0" Grid.Row="4" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y4" Grid.Column="0" Grid.Row="5" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y5" Grid.Column="0" Grid.Row="6" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y6" Grid.Column="0" Grid.Row="7" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y7" Grid.Column="0" Grid.Row="8" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y8" Grid.Column="0" Grid.Row="9" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x0y9" Grid.Column="0" Grid.Row="10" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+
+            <controls:ButtonX Grid.Column="1" Grid.Row="0" x:Name="BT_x1y0_Header" />
+            <TextBox Name="TB_x1y0_Header" Grid.Column="1" Grid.Row="1" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x1y1" Grid.Column="1" Grid.Row="2" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y2" Grid.Column="1" Grid.Row="3" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y3" Grid.Column="1" Grid.Row="4" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y4" Grid.Column="1" Grid.Row="5" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y5" Grid.Column="1" Grid.Row="6" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y6" Grid.Column="1" Grid.Row="7" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y7" Grid.Column="1" Grid.Row="8" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y8" Grid.Column="1" Grid.Row="9" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x1y9" Grid.Column="1" Grid.Row="10" AcceptsReturn="True" BorderThickness="1" />
+
+            <controls:ButtonX Grid.Column="2" Grid.Row="0" x:Name="BT_x2y0_Header" />
+            <TextBox Name="TB_x2y0_Header" Grid.Column="2" Grid.Row="1" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x2y1" Grid.Column="2" Grid.Row="2" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y2" Grid.Column="2" Grid.Row="3" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y3" Grid.Column="2" Grid.Row="4" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y4" Grid.Column="2" Grid.Row="5" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y5" Grid.Column="2" Grid.Row="6" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y6" Grid.Column="2" Grid.Row="7" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y7" Grid.Column="2" Grid.Row="8" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y8" Grid.Column="2" Grid.Row="9" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x2y9" Grid.Column="2" Grid.Row="10" AcceptsReturn="True" BorderThickness="1" />
+
+            <controls:ButtonX Grid.Column="3" Grid.Row="0" x:Name="BT_x3y0_Header" />
+            <TextBox Name="TB_x3y0_Header" Grid.Column="3" Grid.Row="1" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x3y1" Grid.Column="3" Grid.Row="2" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y2" Grid.Column="3" Grid.Row="3" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y3" Grid.Column="3" Grid.Row="4" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y4" Grid.Column="3" Grid.Row="5" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y5" Grid.Column="3" Grid.Row="6" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y6" Grid.Column="3" Grid.Row="7" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y7" Grid.Column="3" Grid.Row="8" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y8" Grid.Column="3" Grid.Row="9" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x3y9" Grid.Column="3" Grid.Row="10" AcceptsReturn="True" BorderThickness="1" />
+
+            <controls:ButtonX Grid.Column="4" Grid.Row="0" x:Name="BT_x4y0_Header" />
+            <TextBox Name="TB_x4y0_Header" Grid.Column="4" Grid.Row="1" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x4y1" Grid.Column="4" Grid.Row="2" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y2" Grid.Column="4" Grid.Row="3" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y3" Grid.Column="4" Grid.Row="4" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y4" Grid.Column="4" Grid.Row="5" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y5" Grid.Column="4" Grid.Row="6" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y6" Grid.Column="4" Grid.Row="7" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y7" Grid.Column="4" Grid.Row="8" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y8" Grid.Column="4" Grid.Row="9" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x4y9" Grid.Column="4" Grid.Row="10" AcceptsReturn="True" BorderThickness="1" />
+
+            <controls:ButtonX Grid.Column="5" Grid.Row="0" x:Name="BT_x5y0_Header" />
+            <TextBox Name="TB_x5y0_Header" Grid.Column="5" Grid.Row="1" AcceptsReturn="True" BorderThickness="1" TextAlignment="Center" />
+            <TextBox Name="TB_x5y1" Grid.Column="5" Grid.Row="2" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y2" Grid.Column="5" Grid.Row="3" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y3" Grid.Column="5" Grid.Row="4" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y4" Grid.Column="5" Grid.Row="5" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y5" Grid.Column="5" Grid.Row="6" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y6" Grid.Column="5" Grid.Row="7" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y7" Grid.Column="5" Grid.Row="8" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y8" Grid.Column="5" Grid.Row="9" AcceptsReturn="True" BorderThickness="1" />
+            <TextBox Name="TB_x5y9" Grid.Column="5" Grid.Row="10" AcceptsReturn="True" BorderThickness="1" />
+
+        </Grid>
+    
+    </Grid>
+
+</UserControl>

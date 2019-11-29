@@ -1,0 +1,14 @@
+﻿<UserControl Name="Input_Window" x:Class="InputX"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:The_Athena_Project"
+             mc:Ignorable="d" 
+             Width="200"
+             Height="50"
+             >
+    <Grid Name="Main_Grid" Background="Transparent"  >
+        <TextBox x:Name="InputBox" VerticalAlignment="Center" TextWrapping="Wrap"  Background="Transparent" BorderBrush="LightGreen" BorderThickness="0" />
+    </Grid>
+</UserControl>

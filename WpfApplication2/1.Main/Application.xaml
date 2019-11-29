@@ -1,0 +1,9 @@
+﻿<Application x:Class="Application"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:The_Athena_Project"
+    StartupUri="1.Main\Home_Page.xaml">
+    <Application.Resources>
+        
+    </Application.Resources>
+</Application>

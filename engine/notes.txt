@@ -1,0 +1,735 @@
+﻿ 
+
+
+
+
+ 
+    Const DEF_ROOM As String = "default"
+    Const DEF_WORLD As String = "default"
+
+    Const DEF_HINT As String = "hint"
+    Const DEF_EXAMINE As String = "examine"
+    Const DEF_LOCATION As String = "location"
+    Const DEF_GET As String = "get"
+    Const DEF_OPEN As String = "open"
+    Const DEF_PLACE As String = "place"
+    Const DEF_ENTER As String = "enter"
+    Const SPACE As String = " "
+
+
+    Public Shared Property Worlds() As New List(Of World)
+    Public Shared Property CurrentWorld() As New World
+    Public Shared ReadOnly Property CurrentRoom() As Room
+        Get
+            Return CurrentWorld.CurrentRoom()
+        End Get
+    End Property
+    Public Shared ReadOnly Property Name() As String
+        Get
+            Return CurrentWorld.Name()
+        End Get
+    End Property
+
+    Public Shared Property Inventory() As New List(Of Item)
+    Public Shared Property IsPlaying() As Boolean = False
+    Public Shared Property Leads() As New List(Of String)
+
+
+
+    Public Shared Sub Load()
+
+        Leads.Add("A portal randomly apears flickering intensly. You feel a strong pull towards entering. Give me the command to 'enter green portal' and you shall make an attempt to enter it.")
+
+    End Sub
+
+
+    Public Shared Function SelectWorld() As Boolean
+        'gameworld selection director
+
+
+        If User.Search("enter green portal") = True Then
+            Avatar.Response() = "The ground begins to quake and and suddenly you are enveloped with the portal. If you are unsure what to do, try typing the command 'hint'"
+            SetCurrentWorld("greenportal")
+            Return True
+        End If
+
+
+        Return False
+    End Function
+
+
+
+    Public Shared Sub LoadMemory()
+        'loads from memory tag
+        'CurrentWorld() = Tags.MemoryTag("GW_CurrentWorld", DEF_WORLD)
+        ' CurrentRoom() = Tags.MemoryTag("GW_CurrentRoom", DEF_ROOM)
+        'Inventory() = ToList(Tags.MemoryTags("GW_Inventory"))
+        ' Leads() = ToList(Tags.MemoryTags("GW_Leads"))
+    End Sub
+    Public Shared Sub SaveMemory()
+        'this saves the conversational story and position
+        'Tags.MemoryTag("GW_CurrentWorld") = CurrentWorld()
+        'Tags.MemoryTag("GW_CurrentRoom") = CurrentRoom()
+        'Tags.MemoryTags("GW_Inventory") = ToArray(Inventory())
+        ' Tags.MemoryTags("GW_Leads") = ToArray(Leads())
+    End Sub
+    Public Shared Sub ResetMemory()
+        'resets memory tag
+        Tags.MemoryTag("GW_CurrentWorld") = DEF_WORLD
+        Tags.MemoryTag("GW_CurrentRoom") = DEF_ROOM
+        Tags.MemoryTag("GW_Inventory") = ""
+        'Tags.MemoryTag("GW_Leads") = ""
+    End Sub
+
+
+    Public Shared Sub [Exit]()
+        'CurrentWorld() = "default"
+        'CurrentRoom() = "default"
+        Inventory().Clear()
+        'Leads().Clear()
+        IsPlaying() = False
+    End Sub
+
+
+    Public Shared Sub World1()
+        Dim newWorld As New World
+        newWorld.Name() = "origen"
+
+        Dim home_room As New Room
+        home_room.Name() = "home"
+
+        Dim lamp1 As New Item
+
+
+        home_room.Items.Add(lamp1)
+
+
+
+        newWorld.Rooms.Add(home_room)
+
+
+
+
+
+
+
+        Worlds.Add(newWorld)
+    End Sub
+
+
+    Public Shared Sub Process()
+
+        'This is allows for creation of Interactive Fiction (aka Text Adventures)
+
+        Dim overwrite As Boolean = False
+        REM #GAMEWORLD
+
+        If overwrite = False Then
+
+
+            If Search(CurrentWorld().Name(), "greenportal", True, Gate.eEQUALS) = True Then
+
+
+                If Search(CurrentRoom().Name(), "default") = True Then
+
+                    'ROOM INFO
+                    'hint
+
+
+                    If Detect(DEF_HINT, {"You can examine almost anything you can see [ie. examine area].",
+                                        "To learn of other commands the try saying 'what can I say'"}) = True Then Exit Sub
+
+
+
+                    'examining room
+                    If User.Search("examine area") = True Then
+                        'Avatar.Response() = "You are outside, at the edge of large field. It's early in the morning. You just see the top of a house just above a distant hill. On your right you see a trail leading towards the hill. At your feet lies an old fassioned Lamp."
+                        Avatar.Response() = CurrentRoom.GetItemLocations()
+
+                        Exit Sub
+                    End If
+
+                    'OBJECTS
+                    'Lamp
+                    If User.Search("examine lamp") = True Then
+                        Avatar.Response() = "It's a bit rusty but it is full of oil. It looks like it might come in handy. I suggest you should 'get lamp'."
+                        Exit Sub
+                    End If
+                    If User.Search("get lamp") = True Then
+
+                        'If Search("lamp", Inventory(), True, Gate.eEQUALS) = False Then
+                        ' Inventory.Add("lamp")
+                        'Avatar.Response() = "You are now carrying the lamp. Whenever you need it you should say 'use lamp'."
+                        'Else
+                        ' Avatar.Response() = "You cannot carry more than one of the same item."
+                        'End If
+
+                        Exit Sub
+                    End If
+
+
+                    'Feild
+                    If User.Search("examine door") = True Then
+                        Avatar.Response() = "It is a door."
+                        Exit Sub
+                    End If
+
+                    'House
+
+                    'Hill
+
+                    'Trail
+                    If User.Search("examine trail") = True Then
+                        Avatar.Response() = "It seems to be a good trail that leads off into a forest just a stone throw away. It doesn't look overgrown."
+                        Exit Sub
+                    End If
+                    If User.Search("enter trail") = True Then
+                        Avatar.Response() = "You make your way towards the trail head. A moment later, you finally reach it."
+                        CurrentWorld.SetCurrentRoom("trail_1")
+                        Exit Sub
+                    End If
+
+                ElseIf Search(CurrentRoom().Name(), "tail_1", True, Gate.eEQUALS) = True Then
+
+                    Exit Sub
+                End If
+
+
+
+
+
+                eCatch()
+
+
+
+                '***************
+                'EXITIING WORLD
+                If Search(CurrentRoom().Name(), "exitworld") = True Then
+
+                    'Leads().Clear()
+                    [Exit]()
+                End If
+                '***************
+
+            End If
+
+
+
+
+
+
+        End If
+
+
+        Avatar.Response() = "I do not understand."
+
+    End Sub
+
+
+    Private Shared Sub eCatch()
+        'GENERAL OPTIONS
+        'Sun
+
+        Detect("examine sun", "It is the Sun. It's very bright.")
+        Detect("get sun", "I'm sorry. You do not have room in your inventory for the Sun.")
+
+
+        'GENERAL COMMANDS
+        Detect("open inventory", "You are carrying:" & CurrentRoom.GetRoomItemNames() & ".")
+        Detect("what can I say", "You can say these commands: hint, examine <object>, get <object>, place <object>, enter <place/object>, open <object>, open inventory.")
+
+
+        'CATCH COMMANDS
+        Detect("examine *", "I do not understand what you want me to examine.")
+        Detect("enter *", "I do not understand what you want me to enter.")
+
+
+    End Sub
+
+    Private Shared Function Detect(ByVal command As String, ByVal response As String) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = response
+            Return True
+        End If
+
+        Return False
+    End Function
+    Private Shared Function Detect(ByVal command As String(), ByVal response As String) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = response
+            Return True
+        End If
+
+        Return False
+    End Function
+    Private Shared Function Detect(ByVal command As String(), ByVal response As String()) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = Join(response, " ")
+            Return True
+        End If
+
+        Return False
+    End Function
+    Private Shared Function Detect(ByVal command As String, ByVal response As String()) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = Join(response, " ")
+            Return True
+        End If
+
+        Return False
+    End Function
+
+    Public Shared Function eSearch(ByVal command As String, ByVal item As String) As Boolean
+        Return User.Search(command & SPACE & item)
+    End Function
+
+
+    Public Shared Sub SetCurrentWorld(ByVal name As String)
+        For Each wld In Worlds
+            If Search(wld.Name(), name, True, Gate.eEQUALS) = True Then
+                CurrentWorld() = wld
+            End If
+        Next
+    End Sub
+
+
+    Public Shared Function ExamineItem()
+
+    End Function
+
+    Public Shared Function GetItem()
+
+    End Function
+
+
+
+
+    Private Shared Sub ItemProcess()
+
+        For Each Itm In CurrentRoom().Items()
+
+            If eSearch(DEF_EXAMINE, Itm.Name()) = True Then
+                Avatar.Response() = Itm.Examine()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_GET, Itm.Name()) = True Then
+
+                Inventory().Add(Itm)
+
+                Avatar.Response() = Itm.Get()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_PLACE, Itm.Name()) = True Then
+                Avatar.Response() = Itm.Place()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_ENTER, Itm.Name()) = True Then
+                CurrentWorld.SetCurrentRoom(Itm.Enter())
+                Avatar.Response() = Itm.EnterReturn()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_OPEN, Itm.Name()) = True Then
+                Avatar.Response() = Itm.Open()
+                Exit Sub
+            End If
+
+        Next
+
+    End Sub
+
+
+    Public Class World
+        Public Property Name()
+        Public Property Rooms() As New List(Of Room)
+        Public Property CurrentRoom() As New Room
+
+        Public Sub SetCurrentRoom(ByVal name As String)
+            For Each iRoom In Rooms
+                If Search(iRoom.Name(), name, True, Gate.eEQUALS) = True Then
+                    CurrentRoom() = iRoom
+                End If
+            Next
+        End Sub
+
+
+    End Class
+
+    Public Class Room
+        Public Property Name()
+        Public Property Examine()
+        Public Property Items() As New List(Of Item)
+
+        Public Function GetRoomItemNames() As String
+            Dim results As New List(Of String)
+
+            For Each Itm In Items()
+                If IsEmpty(Itm.Name()) = False Then
+                    results.Add(Itm.Name())
+                End If
+            Next
+
+            Return Join(results, SPACE)
+        End Function
+
+
+        Public Function GetItemLocations() As String
+            Dim results As New List(Of String)
+
+            For Each Itm In Items()
+                If IsEmpty(Itm.Location()) = False Then
+                    results.Add(Itm.Location())
+                End If
+            Next
+
+            Return Join(results, SPACE)
+        End Function
+
+
+    End Class
+
+    Public Class Item
+
+        Public Property Name() As String = ""
+
+        Public Property Examine() As String = ""
+        Public Property Location() As String = ""
+
+        Public Property [Get]() As String = ""
+        Public Property GetReturn() As String = ""
+        Public Property Place() As String = ""
+        Public Property PlaceReturn() As String = ""
+        Public Property Enter() As String = ""
+        Public Property EnterReturn() As String = ""
+        Public Property Open() As String = ""
+        Public Property OpenReturn() As String = ""
+
+    End Class
+
+
+
+	Public Class GameWorld
+
+    Const DEF_ROOM As String = "default"
+    Const DEF_WORLD As String = "default"
+
+    Const DEF_HINT As String = "hint"
+    Const DEF_EXAMINE As String = "examine"
+    Const DEF_LOCATION As String = "location"
+    Const DEF_GET As String = "get"
+    Const DEF_OPEN As String = "open"
+    Const DEF_PLACE As String = "place"
+    Const DEF_ENTER As String = "enter"
+    Const SPACE As String = " "
+
+
+
+    Public Shared Property CurrentWorld() As String = ""
+    Public Shared Property CurrentRoom() As String = ""
+    Public Shared Property Inventory() As New List(Of String)
+    Public Shared Property IsPlaying() As Boolean = False
+    Public Shared Property Leads() As New List(Of String)
+
+
+
+    Public Shared Sub Load()
+
+        Leads.Add("A portal randomly apears flickering intensly. You feel a strong pull towards entering. Give me the command to 'enter green portal' and you shall make an attempt to enter it.")
+
+    End Sub
+
+
+    Public Shared Function SelectWorld() As Boolean
+        'gameworld selection director
+
+
+        If User.Search("enter green portal") = True Then
+            Avatar.Response() = "The ground begins to quake and and suddenly you are enveloped with the portal. If you are unsure what to do, try typing the command 'hint'"
+            CurrentWorld() = "greenportal"
+            Return True
+        End If
+
+
+        Return False
+    End Function
+
+
+
+    Public Shared Sub LoadMemory()
+        'loads from memory tag
+        'CurrentWorld() = Tags.MemoryTag("GW_CurrentWorld", DEF_WORLD)
+        ' CurrentRoom() = Tags.MemoryTag("GW_CurrentRoom", DEF_ROOM)
+        'Inventory() = ToList(Tags.MemoryTags("GW_Inventory"))
+        ' Leads() = ToList(Tags.MemoryTags("GW_Leads"))
+    End Sub
+    Public Shared Sub SaveMemory()
+        'this saves the conversational story and position
+        'Tags.MemoryTag("GW_CurrentWorld") = CurrentWorld()
+        'Tags.MemoryTag("GW_CurrentRoom") = CurrentRoom()
+        'Tags.MemoryTags("GW_Inventory") = ToArray(Inventory())
+        ' Tags.MemoryTags("GW_Leads") = ToArray(Leads())
+    End Sub
+    Public Shared Sub ResetMemory()
+        'resets memory tag
+        Tags.MemoryTag("GW_CurrentWorld") = DEF_WORLD
+        Tags.MemoryTag("GW_CurrentRoom") = DEF_ROOM
+        Tags.MemoryTag("GW_Inventory") = ""
+        'Tags.MemoryTag("GW_Leads") = ""
+    End Sub
+
+
+    Public Shared Sub [Exit]()
+        CurrentWorld() = "default"
+        CurrentRoom() = "default"
+        Inventory().Clear()
+        Leads().Clear()
+        IsPlaying() = False
+    End Sub
+
+
+
+
+    Public Shared Sub Process()
+
+        'This is allows for creation of Interactive Fiction (aka Text Adventures)
+
+        Dim overwrite As Boolean = False
+        REM #GAMEWORLD
+
+        If overwrite = False Then
+
+
+            If Check(CurrentWorld(), "greenportal") = True Then
+
+
+                If Check(CurrentRoom(), "default") = True Then
+
+                    'ROOM INFO
+                    'hint
+
+
+                    If Detect(DEF_HINT, {"You can examine almost anything you can see [ie. examine area].",
+                                        "To learn of other commands the try saying 'what can I say'"}) = True Then Exit Sub
+
+
+
+                    'examining room
+                    If User.Search("examine area") = True Then
+                        'Avatar.Response() = "You are outside, at the edge of large field. It's early in the morning. You just see the top of a house just above a distant hill. On your right you see a trail leading towards the hill. At your feet lies an old fassioned Lamp."
+                        Avatar.Response() = CurrentRoom.GetItemLocations()
+
+                        Exit Sub
+                    End If
+
+                    'OBJECTS
+                    'Lamp
+                    If User.Search("examine lamp") = True Then
+                        Avatar.Response() = "It's a bit rusty but it is full of oil. It looks like it might come in handy. I suggest you should 'get lamp'."
+                        Exit Sub
+                    End If
+                    If User.Search("get lamp") = True Then
+
+                        'If Search("lamp", Inventory(), True, Gate.eEQUALS) = False Then
+                        ' Inventory.Add("lamp")
+                        'Avatar.Response() = "You are now carrying the lamp. Whenever you need it you should say 'use lamp'."
+                        'Else
+                        ' Avatar.Response() = "You cannot carry more than one of the same item."
+                        'End If
+
+                        Exit Sub
+                    End If
+
+
+                    'Feild
+                    If User.Search("examine door") = True Then
+                        Avatar.Response() = "It is a door."
+                        Exit Sub
+                    End If
+
+                    'House
+
+                    'Hill
+
+                    'Trail
+                    If User.Search("examine trail") = True Then
+                        Avatar.Response() = "It seems to be a good trail that leads off into a forest just a stone throw away. It doesn't look overgrown."
+                        Exit Sub
+                    End If
+                    If User.Search("enter trail") = True Then
+                        Avatar.Response() = "You make your way towards the trail head. A moment later, you finally reach it."
+                        CurrentRoom() = "trail_1"
+                        Exit Sub
+                    End If
+
+                ElseIf Check(CurrentRoom(), "tail_1") = True Then
+
+                    Exit Sub
+                End If
+
+
+
+
+
+                eCatch()
+
+
+
+                '***************
+                'EXITIING WORLD
+                If Check(CurrentRoom(), "exitworld") = True Then
+
+                    'Leads().Clear()
+                    [Exit]()
+                End If
+                '***************
+
+            End If
+
+
+
+
+
+
+        End If
+
+
+        Avatar.Response() = "I do not understand."
+
+    End Sub
+
+
+    Private Shared Sub eCatch()
+        'GENERAL OPTIONS
+        'Sun
+
+        Detect("examine sun", "It is the Sun. It's very bright.")
+        Detect("get sun", "I'm sorry. You do not have room in your inventory for the Sun.")
+
+
+        'GENERAL COMMANDS
+        Detect("open inventory", "You are carrying:" & CurrentRoom.GetRoomItemNames() & ".")
+        Detect("what can I say", "You can say these commands: hint, examine <object>, get <object>, place <object>, enter <place/object>, open <object>, open inventory.")
+
+
+        'CATCH COMMANDS
+        Detect("examine *", "I do not understand what you want me to examine.")
+        Detect("enter *", "I do not understand what you want me to enter.")
+
+
+    End Sub
+
+    Private Shared Function Detect(ByVal command As String, ByVal response As String) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = response
+            Return True
+        End If
+
+        Return False
+    End Function
+    Private Shared Function Detect(ByVal command As String(), ByVal response As String) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = response
+            Return True
+        End If
+
+        Return False
+    End Function
+    Private Shared Function Detect(ByVal command As String(), ByVal response As String()) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = Join(response, " ")
+            Return True
+        End If
+
+        Return False
+    End Function
+    Private Shared Function Detect(ByVal command As String, ByVal response As String()) As Boolean
+        If User.Search(command) = True Then
+            Avatar.Response() = Join(response, " ")
+            Return True
+        End If
+
+        Return False
+    End Function
+
+    Public Shared Function eSearch(ByVal command As String, ByVal item As String) As Boolean
+        Return User.Search(command & SPACE & item)
+    End Function
+
+
+    Public Shared Function Check(ByVal text As String, ByVal find As String)
+        Return Search(text, find, True, Gate.eEQUALS)
+    End Function
+
+
+    Public Shared Function ExamineItem(ByVal name As String, ByVal results As String)
+        If eSearch(DEF_EXAMINE, name) = True Then
+            Avatar.Response() = results
+            Return True
+        End If
+        Return False
+    End Function
+
+    Public Shared Function GetItem(ByVal name As String, ByVal results As String)
+        If eSearch(DEF_GET, name) = True Then
+            Inventory().Add(name)
+            Avatar.Response() = results
+            Return True
+        End If
+        Return False
+    End Function
+    Public Shared Function PlaceItem(ByVal name As String, ByVal results As String)
+        If eSearch(DEF_PLACE, name) = True Then
+            Inventory().Remove(name)
+            Avatar.Response() = results
+            Return True
+        End If
+        Return False
+    End Function
+
+
+
+    Private Shared Sub ItemProcess()
+
+        For Each Itm In CurrentRoom().Items()
+
+            If eSearch(DEF_EXAMINE, Itm.Name()) = True Then
+                Avatar.Response() = Itm.Examine()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_GET, Itm.Name()) = True Then
+
+                Inventory().Add(Itm)
+
+                Avatar.Response() = Itm.Get()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_PLACE, Itm.Name()) = True Then
+                Avatar.Response() = Itm.Place()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_ENTER, Itm.Name()) = True Then
+                CurrentWorld.SetCurrentRoom(Itm.Enter())
+                Avatar.Response() = Itm.EnterReturn()
+                Exit Sub
+            End If
+
+            If eSearch(DEF_OPEN, Itm.Name()) = True Then
+                Avatar.Response() = Itm.Open()
+                Exit Sub
+            End If
+
+        Next
+
+    End Sub
+
+
+
+
+
+End Class

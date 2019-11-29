@@ -1,0 +1,40 @@
+﻿<Window x:Class="DatabaseEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:The_Athena_Project"
+        xmlns:controls="clr-namespace:MatrixBasic;assembly=MatrixBasic"
+        mc:Ignorable="d"
+        Title="The Athena Project - Database Editor" Height="600" Width="800">
+    <Grid Name="Main_Grid">
+
+   
+        <Border Name="Border_Editor" BorderBrush="White" BorderThickness="3">
+            <Grid Name="Main_Scroll" Background="Transparent" Grid.Column="0" Grid.Row="1" Margin="0" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="20" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <controls:DropMenu x:Name="Main_Menu" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0"  VerticalAlignment="Top" />
+
+
+                <TreeView Name="Main_TreeView" Grid.Column="0" Grid.Row="1" BorderThickness="5, 0, 5, 0"  Margin="0,0,10,0"  Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                          ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible"  />
+
+                <GridSplitter Name="Main_Splitter" Grid.Column="0" Grid.Row="1" Width="10" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+
+                <local:DatabaseEdit x:Name="Main_DataGrid" Grid.Column="1" Grid.Row="1" Background="Red" />
+
+                <ProgressBar Name="Main_PBar" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" />
+                
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,30 @@
+﻿<Window x:Name="Home_Page_Window" x:Class="Home_Page" 
+           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:local="clr-namespace:The_Athena_Project"
+            mc:Ignorable="d"
+            Title="The Athena Project" 
+            Height="720" 
+            Width="1280" 
+            AllowsTransparency="True" 
+            Background="Transparent"
+            WindowStyle="none"         
+        >
+
+    <Grid x:Name="Main_Grid" Background="Transparent" Margin="5">
+        <Grid x:Name="UI_Grid" Background="Transparent" Margin="1">
+
+            <local:AvatarX x:Name="AvatarX" Background="Transparent" />
+            <local:PromptX x:Name="PromptX"  HorizontalAlignment="Left" VerticalAlignment="Top"  BorderBrush="White"  BorderThickness="0" Margin="80,80,0,0" Width="335" Height="435"/>
+            <local:StatusX x:Name="StatusX"   HorizontalAlignment="Left" VerticalAlignment="Top"  BorderBrush="White"  BorderThickness="0" Margin="459,80,179,0" Height="105"/>
+            <local:MenuX x:Name="MenuX" HorizontalAlignment="Left" VerticalAlignment="Top"  BorderBrush="White" BorderThickness="0" Margin="0,80,10,0"  Height="70" Width="145"/>
+            <local:InputX x:Name="InputX" HorizontalAlignment="Left"  VerticalAlignment="Top" BorderBrush="White" BorderThickness="0" Margin="80,594,0,0"  Height="55"  />
+            <local:GripX  x:Name="GripX" HorizontalAlignment="Left"  VerticalAlignment="Top" BorderBrush="White" BorderThickness="0" Margin="80,10,59,0" Height="35"  />
+   
+        </Grid>
+    </Grid>
+
+
+</Window>

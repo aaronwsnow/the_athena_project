@@ -1,0 +1,5245 @@
+﻿Option Explicit On
+Option Strict Off
+Option Infer On
+Option Compare Binary
+
+Imports Matrix
+Imports Matrix.Utility
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+
+    'NOTES
+    'Use <r[4]> args for word replacement of user's statement 4+,4-,4-6
+    'use <r[noun]> to get noun replacement from user's statement
+    '
+    'I like to ideas of using puzzles to gain access to the correct commands or questions
+    'all this to unlock mysteries
+    '
+    'make a script editor
+    'make a visual story editor
+    '
+    'need to design storys
+    '
+    'Do some advanced Error TimeStamp tracker :)
+    '
+    'IsA relationship
+    'A cat is a small animal
+    'Is a cat a small animal
+    'IsA, HasA, WasA,
+    '
+    '
+    '
+    '
+
+
+    Class Diagnostics
+        'True = circumvents the program to run the Test Sub
+        Public Shared Property IsTest() As Boolean = True
+        'True = suspends all timers on program load
+        Public Shared Property SuspendTimers() As Boolean = False
+        'True = suspends all timer functions used in normal mode
+        Public Shared Property SuspendTimer() As Boolean = False
+        'True = prevents program from entering story mode
+        Public Shared Property SuspendDialog() As Boolean = True
+        'True = prevents program from entering nodule dialog mode 
+        Public Shared Property SuspendNodules() As Boolean = True
+        'True = suspends all local tamagochi features
+        Public Shared Property SuspendTamagotchi() As Boolean = False
+        'True = suspends all Leads in Timer 
+        Public Shared Property SuspendLeads() As Boolean = False
+        'True = Suspends the Introduction Dialog, runs when program finishes initial (needed) questionair
+        Public Shared Property SuspendIntro() As Boolean = True
+        'Disables/Enables: it checks to see if the UI is running, it kill the engine if not
+        Public Shared Property UI_Minute_Check() As Boolean = False
+    End Class
+
+
+    Public WithEvents SecondTimer As New Timer(0, 0, 0, 1)
+    Public WithEvents MinuteTimer As New Timer(0, 0, 1, 0)
+    Public WithEvents HourTimer As New Timer(0, 1, 0, 0)
+    Public WithEvents DayTimer As New Timer(1, 0, 0, 0)
+
+    Public Sub Main()
+
+        '*****
+        'remove for actual use
+        Pre_Load()
+        '*****
+
+        If Diagnostics.IsTest() = True Then
+            Test()
+        Else
+
+            Processing.Load()
+
+            Do
+
+                '*****
+                'remove for actual use
+                Input_Console()
+                '*****
+
+                Processing.Ping()
+
+                If User.Ready() = True Then
+
+                    Processing.Recieve()
+                    Processing.Process()
+                    Processing.Finale()
+
+                    '*****
+                    'remove for actual use
+                    Output_Console()
+                    '*****
+
+                End If
+
+                Sleep(500)
+            Loop
+
+            Processing.Close()
+
+        End If
+    End Sub
+
+    Public Property SuspendTimer() As Boolean = False
+    Public Property SuspendTamagotchi() As Boolean = False
+    Public Property SuspendLeads() As Boolean = False
+    Public Property DialogLeads() As String() = {}
+
+    Private Sub SecondEvent() Handles SecondTimer.Tick
+        '-Check Reminder Date
+        '-Make Random Statement/Jokes
+        '-Make conversation leading statements
+        '-Run Avatar Script
+        '-Make Changes in Tags (ie. change mood, state)
+        '-User could monitor system here
+
+        Try
+
+            Dim IsReady As Boolean = False
+            If Locals.TimeSeriesRun() = False Then
+
+                If SuspendTimer() = False And Diagnostics.SuspendTimer() = False Then
+                    If SuspendLeads() = False And Diagnostics.SuspendLeads() = False Then
+
+                        If Dialogs.IsPlaying() = False Then
+
+                            Dim overwrite As Boolean = False
+                            REM #SECOND
+
+                            If overwrite = False Then
+                                If RandBool(30) = True Then
+
+                                    If Locals.Loops("dialog_leads", 5) = True Then
+                                        Dim lead = RandArray(Dialogs.GetLeads(), "")
+                                        If IsEmpty(lead) = False Then
+                                            Avatar.Response() = lead + " lead"
+                                            SuspendTimer() = True
+                                            IsReady = True
+                                        End If
+                                    End If
+
+                                ElseIf RandBool(30) = True Then
+
+                                    If Locals.Loops("dialog_query", 5) = True Then
+                                        Dim query = Dialogs.SelectQuery()
+                                        If IsEmpty(query) = False Then
+                                            Avatar.Response() = query
+                                            Dialogs.CommitQuery()
+                                            IDS.Address(1, 1000)
+                                            IsReady = True
+                                        End If
+                                    End If
+
+                                ElseIf RandBool(30) = True Then
+
+                                    'repository leads
+                                    If Locals.Loops("local_leads", 5) = True Then
+                                        Dim leads = Tables.GetFromLists(Column.Leads(), Locals.Filter(), "")
+                                        If IsEmpty(leads) = False Then
+                                            Avatar.Response() = leads
+                                            SuspendTimer() = True
+                                            IDS.Address(2, 1001)
+                                            IsReady = True
+                                        End If
+                                    End If
+
+                                ElseIf RandBool(30) = True Then
+
+                                    If Locals.Loops("local_random", 5) = True Then
+                                        Dim rand = Tables.GetFromLists(Column.Random, Locals.Filter(), "")
+                                        If IsEmpty(rand) = False Then
+                                            Avatar.Response() = rand
+                                            IsReady = True
+                                        End If
+                                    End If
+
+                                End If
+
+
+                            End If
+
+                        Else
+
+                            If Locals.Loops("local_dialogleads", 5) = True Then
+                                If RandBool(30) = True Then
+                                    Dim rand = RandArray(DialogLeads(), "")
+                                    If IsEmpty(rand) = False Then
+                                        Avatar.Response() = rand
+                                        IsReady = True
+                                    End If
+                                End If
+                            End If
+
+                        End If
+                    End If
+
+                    If SuspendTamagotchi() = False And Diagnostics.SuspendTamagotchi() = False Then
+                        If Tamagotchi.ProcessTick() = True Then IsReady = True
+                    End If
+
+                End If
+
+                Tamagotchi.GeneralTick()
+
+            Else
+                SuspendTimer() = True
+
+                If Locals.TimeSeriesLoops() = 0 Then
+
+                    Dim respond = GetIndex(Locals.TimeSeries(), Locals.TimeSeriesCount(), "[exit]")
+                    Locals.TimeSeriesLoops() = ToInt(GetIndex(Locals.TimeSeries(), Locals.TimeSeriesCount() + 1), 0)
+
+                    If Search("[exit]", respond, Gate.eSEARCH) = True Then
+                        Locals.TimeSeriesClose()
+                        SuspendTimer() = False
+
+                    Else
+                        Locals.TimeSeriesCount() += 2
+                        Avatar.Response() = respond
+                        IsReady = True
+                    End If
+
+                End If
+
+                Locals.TimeSeriesLoops() -= 1
+            End If
+
+            If IsReady = True Then
+                Processing.Send()
+
+                '*****
+                'remove for actual use
+                Output_Console()
+                '*****
+            End If
+
+        Catch ex As Exception
+
+        End Try
+
+    End Sub
+
+    Private Sub MinuteEvent() Handles MinuteTimer.Tick
+
+        Try
+            Dim IsReady As Boolean = False
+
+            If Locals.TimeSeriesRun() = False Then
+                If SuspendTimer() = False And Diagnostics.SuspendTimer() = False Then
+                    If Dialogs.IsPlaying() = False Then
+
+                        Dim overwrite As Boolean = False
+                        REM #MINUTE
+
+                        If overwrite = False Then
+                            If Locals.Loops("exitcheck", 1) = True Then
+                                'After 1 minute this program will exit if host program has been disabled
+                                If IsProgramRunning(Files.UIPROGRAM()) = False And Diagnostics.UI_Minute_Check() = True Then
+                                    ExitProgram()
+                                End If
+                            End If
+                        End If
+
+
+                    End If
+                End If
+            End If
+
+            If IsReady = True Then
+                Processing.Send()
+
+                '*****
+                'remove for actual use
+                Output_Console()
+                '*****
+            End If
+
+        Catch ex As Exception
+
+        End Try
+
+    End Sub
+
+    Private Sub HourEvent() Handles HourTimer.Tick
+
+        Try
+            Dim IsReady As Boolean = False
+
+            If Locals.TimeSeriesRun() = False Then
+                If SuspendTimer() = False And Diagnostics.SuspendTimer() = False Then
+                    If Dialogs.IsPlaying() = False Then
+
+                        Dim overwrite As Boolean = False
+                        REM #HOUR
+
+                        If overwrite = False Then
+
+                        End If
+
+                    End If
+                End If
+            End If
+
+            If IsReady = True Then
+                Processing.Send()
+
+                '*****
+                'remove for actual use
+                Output_Console()
+                '*****
+            End If
+
+        Catch ex As Exception
+
+        End Try
+
+    End Sub
+
+    Private Sub DayEvent() Handles DayTimer.Tick
+
+        Try
+
+            Dim IsReady As Boolean = False
+
+            If Locals.TimeSeriesRun() = False Then
+                If SuspendTimer() = False And Diagnostics.SuspendTimer() = False Then
+                    If Dialogs.IsPlaying() = False Then
+
+                        Dim overwrite As Boolean = False
+                        REM #DAY
+
+                        If overwrite = False Then
+
+                        End If
+
+                    End If
+                End If
+            End If
+
+            If IsReady = True Then
+                Processing.Send()
+
+                '*****
+                'remove for actual use
+                Output_Console()
+                '*****
+            End If
+
+        Catch ex As Exception
+
+        End Try
+
+    End Sub
+
+
+    Private Sub Test()
+
+        'uncomment when in practical use
+        'Locals.Output.Response().Add(Locals.Input().UserInput())
+        Dim input As String = ""
+
+        'Word.Load("C:\Users\Aaron\source\repos\WpfApplication2\WpfApplication2\bin\Debug\Athena\standard\Word\standard.wd")
+
+        'VerbInterpreter.Load()
+
+        Do Until input = "exit"
+            'comment when tested
+            input = Console.ReadLine()
+
+            ' Word.Parse(input)
+
+            Dim out = ""
+
+            'VerbInterpreter.Process(WordArray(input))
+
+            out = GameWorld.Process(input)
+
+
+            Console.WriteLine(out)
+        Loop
+
+    End Sub
+
+
+    '*****
+    'remove for actual use
+    Private Sub Pre_Load()
+        Folders.Package() = "standard"
+
+        Dim input = New Memory()
+        input.Package() = "standard"
+        input.Avatar() = "Athena"
+        input.Profile() = "Aaron"
+        input.Cluster() = Folders.Databases() & "standard.db"
+        input.Word() = Folders.Word() & "standard.wd"
+        input.Location() = Files.Output()
+        input.Save()
+    End Sub
+
+    Private Sub Input_Console()
+        'this represents the User writing in the UI and it being saved to the UI Output file
+
+        Dim input = New Memory()
+        input.UserInput() = Console.ReadLine()
+        input.Location() = Files.Output()
+        input.Ready() = True
+        input.Save()
+    End Sub
+
+    Private Sub Output_Console()
+        'this represents the UI reading and displaying from the UI Input file
+
+        Dim output = New Memory()
+        output.Location() = Files.Input()
+        output.Load()
+
+        Dim out As String = ""
+        Console.WriteLine("**Console_Reads**")
+
+
+        out = Join(output.Response(), vbCrLf)
+        If IsEmpty(out) = False Then
+            Console.WriteLine("Response:")
+            Console.WriteLine(out)
+        End If
+
+        out = Join(output.Status(), vbCrLf)
+        If IsEmpty(out) = False Then
+            Console.WriteLine("Status:")
+            Console.WriteLine(out)
+        End If
+
+        out = Join(output.Errors(), vbCrLf)
+        If IsEmpty(out) = False Then
+            Console.WriteLine("Errors:")
+            Console.WriteLine(out)
+        End If
+
+        out = Join(output.Commands(), vbCrLf)
+        If IsEmpty(out) = False Then
+            'Console.WriteLine("Commands:")
+            'Console.WriteLine(out)
+        End If
+
+        out = output.Script()
+        If IsEmpty(out) = False Then
+            Console.WriteLine("Script:")
+            Console.WriteLine(out)
+        End If
+
+        out = output.Book()
+        If IsEmpty(out) = False Then
+            Console.WriteLine("Book:")
+            Console.WriteLine(out)
+        End If
+
+        out = Join(output.Code(), vbCrLf)
+        If IsEmpty(out) = False Then
+            Console.WriteLine("Code:")
+            Console.WriteLine(out)
+        End If
+
+        output.Clear()
+        output.Save()
+
+        Console.WriteLine("FINISHED!")
+        Console.WriteLine("***********")
+
+    End Sub
+
+    '*****
+End Module
+
+
+
+Public Class Processing
+    'This is for organization of major ai sub-divisions 
+
+    Public Shared Sub Load()
+        'Loading anything needed before the actual program starts
+
+        'This is used to load the Directory
+        Dim input = Connect.Input()
+
+        'highest priority for folder orientation
+        Folders.Package() = input.Package()
+
+        'Setting Debug file location
+        Debug.Debugfile() = Files.Debug()
+        Debug.Clear()
+
+        'Loading Tables
+        Tables.Connection() = input.Cluster()
+        Tables.Load()
+
+        'Loading Stories
+        Dialogs.Load()
+        Locals.GeneralStory.Source() = Files.GeneralDialog()
+        Locals.GeneralStory.Loadfile()
+
+        Avatar.Name() = input.Avatar()
+        User.Profile() = input.Profile()
+
+        Word.Load(input.Word())
+
+        'Loading filter
+        Locals.Filter() = Tables.GetList(Column.Filter())
+
+        Tamagotchi.Initialize()
+        Tamagotchi.Load()
+
+        'This sets up for the Initial Nodule to Run
+        IDS.Address(-1, 1000)
+        'Console.WriteLine("[Load]")
+    End Sub
+
+    Public Shared Sub Close()
+
+        'Physically Save Tables to File
+        'Dialogs.SaveMemory()
+        Tables.DeleteTempDatabase()
+        Tables.Save()
+        Word.Save()
+        Locals.GeneralStory.Save()
+
+        'Console.WriteLine("[Exited]")
+    End Sub
+
+    Public Shared Sub Ping()
+        User.Clear()
+        Locals.Input() = Connect.Input()
+    End Sub
+
+    Public Shared Sub Recieve()
+        'process input Text
+        'imediate command processing
+        'word processing
+        'loading tags from database
+
+        Dim localInput = Locals.Input()
+
+        'This directly processes input, ie. exit, save 
+        Dim IsCommand = Locals.Command(localInput.UserInput())
+        If IsCommand = True Then
+            localInput.Ready() = False
+        End If
+
+        'modifying or cleaning input
+        localInput.UserInput() = SingleSpace(localInput.UserInput())
+        'Can be used for Normalization or Input
+        localInput.UserInput() = Tables.Substitute(localInput.UserInput(), Gate.eSEARCH)
+
+        Locals.Input() = localInput
+
+        'Parses input with NLP
+        Word.Parse()
+
+    End Sub
+
+    Public Shared Sub Send()
+
+        'processing output
+
+        'modify or clean output
+        Dim newResponse As New List(Of String)
+        For Each line In Locals.Output().Response()
+
+            line = Locals.InLineTagging(line)
+
+            'filter unwanted/curse words that made it this far
+            For Each fwords In Locals.Filter()
+                line = Replace(line, Utility.Buffer(fwords, " "), RandArray({" #*&$)# ", " @*$&*& ", " !@#$&# ", " *&^%E# "}, ""))
+            Next
+
+            line = SingleSpace(line)
+            line = Capitalize(line)
+            line = AddMark(line, ".")
+
+            newResponse.Add(line)
+        Next
+
+        'random selection on empty
+        If newResponse.Count() = 0 Then
+            Dim result = Tables.GetFromLists(Column.Empty(), Locals.Filter(), "")
+
+            If IsEmpty(result) = True Then
+                newResponse.Add(RandArray({"I have nothing to say"}, ""))
+            Else
+                newResponse.Add(result)
+            End If
+        End If
+
+        'process in-line tags for status
+        Dim newStatus As New List(Of String)
+        For Each line In Locals.Output().Status()
+            line = Locals.InLineTagging(line)
+            newStatus.Add(line)
+        Next
+
+        Locals.Output().Response() = newResponse
+        Locals.Output().Status() = newStatus
+
+        Avatar.Previous() = newResponse
+        User.Previous() = User.UserInput()
+
+        'sending info to the ui 
+        Connect.Output() = Locals.Output()
+        User.Clear()
+
+    End Sub
+
+    Public Shared Sub Timers()
+        If Diagnostics.SuspendTimers() = False Then
+            SecondTimer.Start()
+            MinuteTimer.Start()
+            HourTimer.Start()
+            DayTimer.Start()
+        End If
+    End Sub
+
+    Public Shared Sub Process()
+
+        If IDS.Mode() = 0 Then
+
+            If General.Initial() = True Then Exit Sub
+
+            If General.Load() = True Then Exit Sub
+
+            If General.Commands() = True Then Exit Sub
+
+            If General.Dialog() = True Then Exit Sub
+
+            If General.Detect() = True Then Exit Sub
+
+            If General.Learn() = True Then Exit Sub
+
+        Else
+
+            If General.Nodules() = True Then Exit Sub
+
+        End If
+
+    End Sub
+
+    Public Shared Sub Finale()
+
+        'gets tags from Responses and merge them with the dialog tags
+        'inline tags overwrite dialog tags
+        Tags.Dialog.Merge(Tags.GetInlineTags())
+
+        Tags.DialogParse()
+
+        'saving stats
+        Tamagotchi.Select()
+        Tamagotchi.Save()
+
+        'saving tags
+        'dialog tags overwrite memory tags
+        Tags.Memory.Merge(Tags.Dialog())
+
+        'stores tags to table
+        Tables.SetTags(Tags.Memory())
+
+        'this saves the conversational story and position
+        Dialogs.SaveMemory()
+
+
+        'This checks if the Avatar Output contains timed output
+        'ie. I see you.. >> 2(sec) >> standing there
+        If Locals.TimeSeriesCheck() = False Then
+            Send()
+        End If
+
+    End Sub
+
+End Class
+
+Public Class General
+
+    Public Shared Function Load() As Boolean
+
+        'joins Memory Tags (from database) and Tags derived from User's Input
+        If User.Sentence.Tags.Count() > 0 Then
+            Tags.Memory.Merge(User.Sentence.Tags())
+        End If
+
+        Return False
+    End Function
+
+    Public Shared Function Dialog() As Boolean
+
+        Dim overwrite As Boolean = False
+        REM #DIALOG
+
+        If overwrite = False Then
+            'FORCED XML DIALOG SELECT
+            If User.Search("test dialog") = True Then
+                Dialogs.SetStory("test")
+                IDS.Address(1, 1000)
+                Dialogs.IsPlaying() = True
+                Return True
+            End If
+
+
+            If Diagnostics.SuspendNodules() = False Then
+                'NODULE SELECT
+                If User.Search("i hate") = True Then
+                    IDS.Address(1, 1001)
+                    Nodules()
+                    SuspendTimer() = True
+                    Return True
+                End If
+            End If
+
+        End If
+
+        'XML DIALOG SELECT
+        If Diagnostics.SuspendDialog() = False And Dialogs.IsPlaying() = False Then
+            Dim found = Dialogs.SelectStory()
+
+            If found = True Then
+                IDS.Address(1, 1000)
+                Dialogs.Process()
+                Return True
+            End If
+        End If
+
+        Return False
+    End Function
+
+    Public Shared Function Initial() As Boolean
+
+        Dim overwrite As Boolean = False
+        REM #INITIAL
+
+        If overwrite = False Then
+
+            If Diagnostics.SuspendIntro() = False Then
+                If Locals.DoOnce("initial") = True Then
+
+                    'Into Dialog
+                    IDS.Address(3, 1001)
+                    Nodules()
+                    Return True
+                End If
+            End If
+
+
+            'restarts (if suspended) the timers when the user speaks 
+            SuspendTimer() = False
+
+        End If
+
+        Return False
+    End Function
+
+    Public Shared Function Commands() As Boolean
+
+        Dim arg As String = ""
+        Dim overwrite As Boolean = False
+        REM #COMMANDS
+
+
+        If overwrite = False Then
+            Dim prefix = "please "
+
+            Avatar.Commands() = prefix & "read book"
+            Avatar.Commands() = prefix & "open link"
+            Avatar.Commands() = prefix & "play sound"
+            Avatar.Commands() = prefix & "repeat"
+            Avatar.Commands() = prefix & "start dialog"
+            Avatar.Commands() = prefix & "exit/ignore dialog"
+            Avatar.Commands() = prefix & "print tags"
+            Avatar.Commands() = prefix & "print tag"
+            Avatar.Commands() = prefix & "print stats"
+            Avatar.Commands() = prefix & "print stat"
+
+            If User.Search(prefix, Gate.eSTART) = True Then
+
+
+                REM #COMMAND
+
+                arg = User.GetArg("read book")
+                If IsEmpty(arg) = False Then
+                    Avatar.Book() = Locals.Book(arg)
+                    Return True
+                End If
+
+                arg = User.GetArg("open link")
+                If IsEmpty(arg) = False Then
+                    Locals.OpenLink(arg)
+                    Avatar.Response() = "Now opening """ & arg & """."
+                    Return True
+                End If
+
+                arg = User.GetArg("play sound")
+                If IsEmpty(arg) = False Then
+                    Locals.PlaySounds(arg)
+                    Avatar.Response() = "Now playing """ & arg & """."
+                    Return True
+                End If
+
+                arg = User.GetArg("repeat")
+                If IsEmpty(arg) = False Then
+                    Avatar.Response() = arg
+                    Return True
+                End If
+
+                arg = User.GetArg("start dialog")
+                If IsEmpty(arg) = False Then
+                    Dialogs.SetStory(arg)
+                    Avatar.Response() = "Now playing """ & arg & """."
+                    Dialogs.IsPlaying() = True
+                    SuspendTimer() = True
+                    Return True
+                End If
+
+                If User.Search("print tags") = True Then
+
+                    For Each tag In Tags.Memory.TagList()
+                        Avatar.Status(tag.Name()) = Join(tag.Values, ",")
+                    Next
+
+                    Return True
+                End If
+
+                If User.Search("print stats") = True Then
+                    Avatar.Status() = Tamagotchi.Print()
+                    Return True
+                End If
+
+                arg = User.GetArg("print tag")
+                If IsEmpty(arg) = False Then
+                    Avatar.Status() = Join(Tags.MemoryTags(arg), ":")
+                    Return True
+                End If
+
+                arg = User.GetArg("print stat")
+                If IsEmpty(arg) = False Then
+                    Avatar.Status() = Tamagotchi.GetValue(arg)
+                    Return True
+                End If
+
+
+                If User.Search("give hint") = True Then
+                    If Locals.Hints().Count() > 0 Then
+                        Avatar.Status() = RandArray(Locals.Hints(), "")
+                    End If
+
+                    Return True
+                End If
+
+
+                arg = Trim(User.GetArg("enter"))
+                If IsEmpty(arg) = False Then
+                    Dialogs.SetStory(arg)
+                    IDS.Address(1, 1000)
+                    Dialogs.IsPlaying() = True
+                    Avatar.Response() = "Attempting to enter " & arg & " world."
+                    Return True
+                End If
+
+
+                arg = Trim(User.GetArg("exit world"))
+                If IsEmpty(arg) = False Then
+                    Dialogs.Reset()
+                    Remove(Tables.DEF_TAG_TEMP, Gate.eSEARCH)
+                    Tables.RemoveTempTags()
+                End If
+
+            End If
+        End If
+
+
+        Return False
+    End Function
+
+    Public Shared Function Detect() As Boolean
+
+        Dim overwrite As Boolean = False
+        REM #DETECT
+
+        If overwrite = False Then
+            'If Locals.Sentence.SearchAll({"bird"}, Comparer.CAT) = True Then
+            '   Locals.Response() = "It's a bird."
+            '   Return 0
+            'End If
+
+            If User.Search({Nothing, Nothing, "bird"}, {1, 1, 0}, NLPC.CAT) = True Then
+                'Dim arg = User.Sentence.GetWord({"bird"}, Comparer.CAT)
+                Dim args = User.GetSearchJIndex(2)
+                Avatar.Response() = Article(args, True) & " is a bird."
+                Return True
+            End If
+
+            If User.Search({"a", "bird", Nothing, "hop"}, {0, 0, 1, 0}, NLPC.SEN) = True Then
+                Avatar.Response() = "A bird can jump high."
+                Return True
+            End If
+
+            Dim results = Tables.GeneralDetect("Greetings", User.UserInput(), Tags.Memory(), Locals.Filter(), Gate.eEQUALS)
+            If IsEmpty(results) = False Then
+                Avatar.Response() = results
+                Return True
+            End If
+
+
+            If User.Search("creepy", Gate.eSEARCH) = True Then
+                Avatar.Response() = "I think.. >> 3 >> you look... >> 10 >> very nice."
+                Return True
+            End If
+
+            If User.Search({"tell me your name",
+                           "what is your name",
+                           "I would like to know your name",
+                           "may i ask you your name"}) = True Then
+
+                Avatar.Response() = RandArray({"My name is <avatar>.", "<avatar>, My name is <avatar>."}, "")
+                Return True
+            End If
+
+            If User.Search({"tell me my name",
+                           "what is my name",
+                           "I would like to know my name",
+                           "can you guess my name"}) = True Then
+
+                Avatar.Response() = RandArray({"Your name is <user>.", "<user>, your name is <user>."}, "")
+                Return True
+            End If
+
+            If User.Search({"what time is it",
+                           "what is the time",
+                           "I want the time",
+                           "tell me the time",
+                           "give me the time",
+                           "know the time"}, Gate.eSEARCH) = True Then
+
+                Avatar.Response() = "The time is " + TodaysLongTime() & "."
+                Return True
+            End If
+
+            If User.Search({"what date is it",
+                            "what is the date",
+                            "I want the date",
+                            "tell me the date",
+                            "give me the date",
+                            "know the date",
+                            "what is today's date",
+                            "what is the date today"}, Gate.eSEARCH) = True Then
+
+                Avatar.Response() = "The date is " + TodaysDate() & "."
+                Return True
+            End If
+
+
+            If User.Search({"what is your mood",
+                           "tell me your current emotion",
+                           "how do you feel",
+                           "what mood are you in"}, Gate.eSEARCH) = True Then
+
+                Avatar.Response() = "I feel " & Tamagotchi.CurrentEmotion()
+                Return True
+            End If
+
+            If User.Search({"how old are you",
+                           "what is your age",
+                           "tell me your age"}, Gate.eSEARCH) = True Then
+
+                Avatar.Response() = "I am " & BirthdayAge() & " years old."
+                Return True
+            End If
+
+            If User.Search({"when is your birthday",
+                            "when were you born",
+                            "when were you created"}, Gate.eSEARCH) = True Then
+
+                Avatar.Response() = "I was born around " & Birthday()
+                Return True
+            End If
+
+
+
+
+            If User.Search({"magic", "8", "ball"}, Gate.eAND) = True Then
+
+                Avatar.Response() = "Go ahead. Ask away."
+                SuspendTimer() = True
+                IDS.Address(2, 1009)
+                Return True
+            End If
+
+
+            If User.Search({"guess", "my", "number"}, Gate.eAND) = True Then
+
+                Locals.Vars.Index("original_guess") = Rand(0, 100)
+
+                Avatar.Response() = "Go ahead. Guess a number between 0 and 100"
+                SuspendTimer() = True
+                IDS.Address(2, 1011)
+                Return True
+            End If
+
+            If Tamagotchi.Process() = True Then Return True
+
+
+        End If
+
+
+        'If Tags.MemoryExist("mood", "hostle", True) = True Then
+        'End If
+
+        'If User.Search("*you are stupid*") = True Then
+        '   Avatar.Response() = "That hurt my feelings."
+        '   Tamagotchi.Add("sad", 10)
+        '   Return True
+        'End If
+
+
+        'If Tables.Detect("Greetings", User.ToArray(), Gate.eSEARCH) = True Then
+        '   New Pairs("Gender", "female")
+        '   Avatar.Response() = Tables.Respond("Greetings", Tags.Memory(), Locals.Filter())
+        '   Return True
+        'End If
+
+        'If User.Search({C({"what"}), C({"data"}), C({"is"}), C({"in"}), Nothing}, {0, 0, 0, 0, 1}, NLPC.SEN) = True Then
+        '   Dim args = User.GetSearchJIndex(5)
+        '   Avatar.Response() = Join(Tags.MemoryTags(args), ":")
+        '   Return True
+        'End If
+
+        'Need to find all posible ways of finding an argument
+        'Search and GetArg
+        'Search{one,two, * ,four} and GetIndex of sentence array
+
+
+        Return False
+    End Function
+
+    Public Shared Function Learn() As Boolean
+
+        Dim overwrite As Boolean = False
+        REM #LEARN
+
+        If overwrite = False Then
+            Dim results As String = ""
+
+
+
+            'GENERAL NLP
+            'add noun:bird
+            'add bird:chicken
+            'add huge:very large
+
+            'they are all deposited in their respective files 
+            '(generalpos, categories, synonyms, compounds)
+            'that way all user addions can be more easily traced
+
+            'word/ [pos] (pos, cat, syn, com)
+            '(category:member)
+            'noun:bird
+            'verb:walk
+
+            If User.Search("word/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                Dim keytags = Trim(GetMidArg(GetIndex(lines, 0, ""), "[", "]", Gate.eEQUALS))
+                lines = GetRange(CleanArray(lines), 1)
+
+                If IsEmpty(keytags) = True Then
+                    keytags = "pos"
+                End If
+
+                Dim newNLPC As New NLPC
+                If Search(keytags, "pos", Gate.eEQUALS) = True Then
+                    newNLPC = NLPC.POS
+                End If
+
+                If Search(keytags, "cat", Gate.eEQUALS) = True Then
+                    newNLPC = NLPC.CAT
+                End If
+
+                If Search(keytags, "syn", Gate.eEQUALS) = True Then
+                    newNLPC = NLPC.SYN
+                End If
+
+                If Search(keytags, "com", Gate.eEQUALS) = True Then
+                    newNLPC = NLPC.COM
+                End If
+
+                For Each line In lines
+                    Dim cmds = ToArray(line, ":")
+                    Dim cat = Trim(GetIndex(cmds, 0, ""))
+                    Dim entry = Trim(GetIndex(cmds, 1, ""))
+
+                    If IsEmpty(cat) = False And IsEmpty(entry) = False Then
+                        Word.SetEntry(cat, entry, newNLPC)
+                    End If
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            'a * is a *
+            'ie. a bird is a noun
+            If User.Search({"a", Nothing, "is", "a", Nothing}, {0, 1, 0, 0, 1}, 5, NLPC.SEN) = True Then
+                Dim words = User.GetSearchIndex(1)
+                Dim cat = User.GetSearchIndex(4)
+
+                If SearchObject(cat, {POS.ADJ, POS.ADV, POS.ART, POS.AUX, POS.CONJ, POS.INTR, POS.NOUN, POS.PREP, POS.PRO, POS.VERB}, True, Gate.eEQUALS) = True Then
+                    Word.SetEntry(cat, words, NLPC.POS)
+
+                    Avatar.Response() = Resources.Remember()
+                    Return True
+                End If
+
+            End If
+
+            If User.Search("what part of speech is * of") = True Then
+                Dim args = User.GetArg("is", "of")
+
+                If IsEmpty(args) = True Then
+                    Avatar.Response() = Resources.NoAnswer()
+                Else
+                    Avatar.Response() = Word.GetPOS(args)
+                End If
+
+                Return True
+            End If
+
+
+            'a * is a type of *
+            If User.Search({"a", Nothing, "is", "a", "type", "of"}, {0, 1, 0, 0, 0, 0, 1}, 7, NLPC.SEN) = True Then
+                Dim words = User.GetSearchIndex(1)
+                Dim cat = User.GetSearchIndex(6)
+
+                Word.SetEntry(cat, words, NLPC.CAT)
+                Return True
+            End If
+
+            If User.Search("what category is * of") = True Then
+                Dim args = User.GetArg("is", "of")
+
+                If IsEmpty(args) = True Then
+                    Avatar.Response() = Resources.NoAnswer()
+                Else
+                    Avatar.Response() = Word.GetCategory(args)
+                End If
+
+                Return True
+            End If
+
+            'a * is a synonym of *
+            If User.Search({"a", Nothing, "is", "a", "synonym", "of"}, {0, 1, 0, 0, 0, 0, 1}, 7, NLPC.SEN) = True Then
+                Dim words = User.GetSearchIndex(1)
+                Dim cat = User.GetSearchIndex(6)
+
+                Word.SetEntry(cat, words, NLPC.SYN)
+                Return True
+            End If
+
+            If User.Search("tell me the synonym of*") = True Then
+                Dim args = User.GetArg("of")
+
+                If IsEmpty(args) = True Then
+                    Avatar.Response() = Resources.NoAnswer()
+                Else
+                    Avatar.Response() = Word.GetSynonym(args)
+                End If
+
+                Return True
+            End If
+
+            'a * is a compound
+            If User.Search("a * is a compound*", Gate.eEQUALS) = True Then
+                Dim words = User.GetArg("a", "is")
+                Dim com = WordArray(words)
+
+                If com.Length() > 1 Then
+                    Word.SetEntry(NLP.DEF_COMP, words, NLPC.COM)
+                End If
+
+                Return True
+            End If
+
+            If User.Search("is * a compound*") = True Then
+                Dim args = User.GetArg("is", "a")
+
+                If IsEmpty(args) = True Then
+                    Avatar.Response() = Resources.NoAnswer()
+                Else
+                    Avatar.Response() = Word.DoesExist(NLP.DEF_COMP, args, NLPC.COM)
+                End If
+
+                Return True
+            End If
+
+
+            'GENERAL LISTS TABLE
+            'list/ [add] (add/new, remove)
+            '(column:list_item)
+            'fruit:apples|pinapples
+            'fruit:oranges
+            'weapons:knife
+
+
+            If User.Search("list/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                Dim keytags = Trim(GetMidArg(GetIndex(lines, 0, ""), "[", "]", Gate.eEQUALS))
+                lines = GetRange(CleanArray(lines), 1)
+
+                If IsEmpty(keytags) = True Then
+                    keytags = "add"
+                End If
+
+                If Search(keytags, {"add", "new"}, Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        Dim cmds = ToArray(line, ":")
+                        Dim column = Trim(GetIndex(cmds, 0, ""))
+                        Dim entry = Trim(GetIndex(cmds, 1, ""))
+
+                        If IsEmpty(column) = False And IsEmpty(entry) = False Then
+                            Tables.AddToLists(column, entry)
+                        End If
+                    Next
+                End If
+
+                If Search(keytags, "remove", Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        Dim cmds = ToArray(line, ":")
+                        Dim column = Trim(GetIndex(cmds, 0, ""))
+                        Dim entry = Trim(GetIndex(cmds, 1, ""))
+
+                        If IsEmpty(column) = False And IsEmpty(entry) = False Then
+                            Tables.RemoveFromList(column, entry)
+                        End If
+                    Next
+                End If
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+            'STANDARD LISTS
+            'BLOCK, EMPTY, RANDOM
+
+            'BLOCK
+
+            'block/
+            '(what you want blocked)
+            'i hate chickens
+            'pickle eater
+
+            If User.Search("block/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Filter(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            If User.Search("please block", Gate.eSEARCH) = True Then
+                Dim args = User.GetArg("block")
+                Tables.AddToLists(Column.Filter(), args)
+                Avatar.Response() = Resources.Comply()
+            End If
+
+            'unblock/
+            '(what you want unblocked)
+            'i hate chickens
+            'pickle eater
+
+            If User.Search("unblock/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.RemoveFromList(Column.Filter(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            If User.Search("please unblock", Gate.eSEARCH) = True Then
+                Dim args = User.GetArg("unblock")
+                Tables.RemoveFromList(Column.Filter(), args)
+                Avatar.Response() = Resources.Comply()
+            End If
+
+            'empty/
+            '(if there is nothing to say then a random sentence is chosen from this list)
+            'i hate chickens
+            'i have nothing to say
+
+            If User.Search("empty/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Empty(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+            'leads/
+            'i hate chickens
+            'i have nothing to say
+            'used to entice/lead the user to say things
+            If User.Search("leads/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Leads(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            If User.Search("please remember that", Gate.eSEARCH) = True Then
+                Dim args = User.GetArg("that")
+                Tables.AddToLists(Column.Leads(), args)
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+            If User.Search("please remember", Gate.eSEARCH) = True Then
+                Dim args = User.GetArg("remember")
+                Tables.AddToLists(Column.Leads(), args)
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+
+            'random/
+            'i hate chickens
+            'why did the chicken cross the road >> 2 >> to get to the other side
+
+            If User.Search("random/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Random(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            If User.Search("please randomly say", Gate.eSEARCH) = True Then
+                Dim args = User.GetArg("say")
+                Tables.AddToLists(Column.Random(), args)
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+
+
+            'dreams/
+            'please don't eat me >> 2 >> cause I'm about to eat you
+
+            If User.Search("dreams/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Dreams(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            'dreams/
+            'cookie
+            'banana
+
+            If User.Search("foods/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Foods(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            'insults/
+            'your mothing dropped you on you head as a child
+
+            If User.Search("insults/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Insults(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            'compliments/
+            'you look really nice
+
+            If User.Search("compliments/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Tables.AddToLists(Column.Compliments(), line)
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+            'PERSONAL LISTS
+
+            'I like
+
+            If User.Search({"i", "like", Nothing}, {0, 0, 1}, NLPC.SEN) = True Then
+
+                Dim args = Trim(User.GetSearchJIndex(2))
+
+                Tables.AddToLists("user-like", args)
+
+                Avatar.Response() = "I will remember you like " & args & "."
+
+                Return True
+            End If
+
+            If User.Search("what do i like*") = True Then
+
+                Dim item = Tables.GetFromLists("user-like", Locals.Filter(), "")
+
+                If IsEmpty(item) = False Then
+                    Avatar.Response() = "You like " & item & "."
+                Else
+                    Avatar.Response() = "I do not know what you like."
+                End If
+
+                Return True
+            End If
+
+
+            If User.Search({"you", "like", Nothing}, {0, 0, 1}, NLPC.SEN) = True Then
+
+                Dim args = Trim(User.GetSearchJIndex(2))
+
+                Tables.AddToLists("avatar-like", args)
+
+                Avatar.Response() = "I will remember that I like " & args & "."
+
+                Return True
+            End If
+
+            If User.Search("what do you like*") = True Then
+
+                Dim item = Tables.GetFromLists("avatar-like", Locals.Filter(), "")
+
+                If IsEmpty(item) = False Then
+                    Avatar.Response() = "I like " & item & "."
+                Else
+                    Avatar.Response() = "I do not know what I like."
+                End If
+
+                Return True
+            End If
+
+            'I hate
+
+            'I want
+
+            'I love
+
+            'I feel
+
+            'I'm angry
+
+
+
+            'BANK
+
+            If User.Search("can you keep a secret*") = True Then
+                IDS.Address(2, 1003)
+                Avatar.Response() = "You must first tell me a password."
+                SuspendTimer() = True
+                Return True
+            End If
+
+            If User.Search("tell me a secret*") = True Then
+                IDS.Address(2, 1004)
+                Avatar.Response() = "You must first tell me a password."
+                SuspendTimer() = True
+                Return True
+            End If
+
+            If User.Search("please forget a secret*") = True Then
+                IDS.Address(2, 1005)
+                Avatar.Response() = "You must first tell me a password."
+                SuspendTimer() = True
+                Return True
+            End If
+
+            'GENERAL SUBSTITUTE TABLE
+            'substitute/ [add] (add/new)
+            '(searched:replace)
+            'you:I
+            'love:hate
+            'Erin:Aaron
+
+            'substitute/ [remove] (remove)
+            '(searched)
+            'you
+            'love
+            'Erin
+
+
+            If User.Search("substitute/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                Dim keytags = Trim(GetMidArg(GetIndex(lines, 0, ""), "[", "]", Gate.eEQUALS))
+                lines = GetRange(CleanArray(lines), 1)
+
+                If IsEmpty(keytags) = True Then
+                    keytags = "add"
+                End If
+
+                If Search(keytags, {"add", "new"}, Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        Dim cmds = ToArray(line, ":")
+                        Dim search = Trim(GetIndex(cmds, 0, ""))
+                        Dim replace = Trim(GetIndex(cmds, 1, ""))
+
+                        If IsEmpty(search) = False And IsEmpty(replace) = False Then
+                            Tables.AddSubstitute(search, replace)
+                        End If
+                    Next
+                End If
+
+                If Search(keytags, "remove", Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        Tables.RemoveSubstitute(line)
+                    Next
+                End If
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+            If User.Search("instead of * say *") = True Then
+
+                Dim args1 = User.GetArg("of", "say")
+                Dim args2 = User.GetArg("say")
+
+                Tables.RemoveSubstitute(args1)
+                Tables.AddSubstitute(args1, args2)
+
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+
+            If User.Search("replace * with *") = True Then
+
+                Dim args1 = User.GetArg("replace", "with")
+                Dim args2 = User.GetArg("with")
+
+                Tables.RemoveSubstitute(args1)
+                Tables.AddSubstitute(args1, args2)
+
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+
+
+            'GENERAL TAGS TABLE
+            'tags/ [add] (add/new, update)
+            '(tag_name:value1|value2)
+            'emotion:angry
+
+            'tags/ [remove] (remove)
+            '(tag_name)
+            'emotion
+
+
+            If User.Search("tags/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                Dim keytags = Trim(GetMidArg(GetIndex(lines, 0, ""), "[", "]", Gate.eEQUALS))
+                lines = GetRange(CleanArray(lines), 1)
+
+                If IsEmpty(keytags) = True Then
+                    keytags = "add"
+                End If
+
+                If Search(keytags, {"add", "new"}, Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        Dim cmds = ToArray(line, ":")
+                        Dim name = Trim(GetIndex(cmds, 0, ""))
+                        Dim entry = CleanArray(ToArray(GetIndex(cmds, 1, ""), "|"))
+
+                        If IsEmpty(name) = False And IsEmpty(entry) = False Then
+                            Tags.MemoryTags(name, False) = entry
+                        End If
+                    Next
+                End If
+
+                If Search(keytags, "update", Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        Dim cmds = ToArray(line, ":")
+                        Dim name = Trim(GetIndex(cmds, 0, ""))
+                        Dim entry = CleanArray(ToArray(GetIndex(cmds, 1, ""), "|"))
+
+                        If IsEmpty(name) = False And IsEmpty(entry) = False Then
+                            Tags.Update(name, entry)
+                        End If
+                    Next
+                End If
+
+                If Search(keytags, "remove", Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        Tags.Remove(line, Gate.eEQUALS)
+                    Next
+                End If
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+
+
+            'STORE
+            'store/
+            '(name:entry1|entry2)
+
+            If User.Search("store/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Dim cmds = ToArray(line, ":")
+                    Dim name = Trim(GetIndex(cmds, 0, ""))
+                    Dim entry = Trim(GetIndex(cmds, 1, ""))
+
+                    If IsEmpty(name) = False And IsEmpty(entry) = False Then
+                        Tables.Stores(name) = ToArray(entry, "|")
+                    End If
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            If User.Search("please store log") = True Then
+                IDS.Address(2, 1006)
+                Avatar.Response() = "Tell me a storage ID."
+                SuspendTimer() = True
+                Return True
+            End If
+
+            If User.Search("please read log") = True Then
+                IDS.Address(2, 1007)
+                Avatar.Response() = "Give me your storage ID."
+                SuspendTimer() = True
+                Return True
+            End If
+
+            If User.Search("read log*") = True Then
+                Dim args = User.GetArg("log")
+                results = Tables.Store(args)
+
+                If IsEmpty(results) = False Then
+                    Avatar.Response() = results
+                Else
+                    Avatar.Response() = RandArray({"I could not find the log you are requesting."}, "")
+                End If
+
+                Return True
+            End If
+
+            'STATS
+            'stats/
+            '(groups:name:script:value:growth:minimum:maximum)
+            'emotion|stat:hungry:sad:10:1:0:100
+
+
+            If User.Search("stats/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                lines = GetRange(CleanArray(lines), 1)
+
+                For Each line In lines
+                    Dim cmds = ToArray(line, ":")
+                    Dim group = ToArray(Trim(GetIndex(cmds, 0, "")), "|")
+                    Dim name = Trim(GetIndex(cmds, 1, ""))
+                    Dim script = Trim(GetIndex(cmds, 2, ""))
+                    Dim value = ToDbl(Trim(GetIndex(cmds, 3)), 0)
+                    Dim growth = ToDbl(Trim(GetIndex(cmds, 4)), 1)
+                    Dim minimum = ToDbl(Trim(GetIndex(cmds, 5)), 0)
+                    Dim maximum = ToDbl(Trim(GetIndex(cmds, 6)), 0)
+
+                    If IsEmpty(name) = False And IsEmpty(value) = False Then
+                        Tamagotchi.AddStat(group, name, script, value, growth, minimum, maximum)
+                    End If
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+            'TOPICS
+            'topics/ [subject:pickles|emotion:happy] (column:entry)
+            '(detect_list, response_list)
+            'pickles|cucumbers:pickles are cool|I like pickled cucumbers
+
+            'topics/ [remove] (remove)
+            '(responses, detects:responses)
+            'cucumbers:pickles are cool
+            'pickles are cool
+
+            If User.Search("topics/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                Dim keytags = Trim(GetMidArg(GetIndex(lines, 0, ""), "[", "]", Gate.eEQUALS))
+                lines = GetRange(CleanArray(lines), 1)
+
+
+                If Search(keytags, "remove", Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        If Search(line, ":", Gate.eSEARCH) = True Then
+                            Dim cmds = ToArray(line, ":")
+                            Dim detects = Trim(GetIndex(cmds, 0, ""))
+                            Dim responses = Trim(GetIndex(cmds, 1, ""))
+
+                            Tables.RemoveTopics(detects, responses)
+                        Else
+                            Tables.RemoveTopicsByResponse(line, Gate.eEQUALS)
+                        End If
+                    Next
+                End If
+
+
+                If Search(keytags, ":", Gate.eSEARCH) = True Then
+
+                    Dim keytag = CleanArray(ToArray(keytags, "|"))
+                    Dim tagPairs As New Pairs
+
+                    For Each line In keytag
+                        Dim tagline = ToArray(line, ":")
+                        Dim col = Trim(GetIndex(tagline, 0, ""))
+                        Dim entry = Trim(GetIndex(tagline, 1, ""))
+
+                        If IsEmpty(col) = False And IsEmpty(entry) = False Then
+                            tagPairs.Add(New Pairs(col, entry))
+                        End If
+                    Next
+
+                    For Each line In lines
+                        Dim cmds = ToArray(line, ":")
+                        Dim detects = Trim(GetIndex(cmds, 0, ""))
+                        Dim responses = Trim(GetIndex(cmds, 1, ""))
+
+                        If IsEmpty(detects) = False And IsEmpty(responses) = False Then
+                            Tables.AddTopics(detects, responses, tagPairs)
+                        End If
+                    Next
+
+                End If
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+            If User.Search("what do you know about*") = True Then
+
+                Dim args = Trim(User.GetArg("about"))
+
+                results = Tables.Topics(args, Gate.eEQUALS, Locals.Filter())
+                If IsEmpty(results) = False Then
+                    Avatar.Response() = results
+                Else
+                    Avatar.Response() = "I know nothing about """ & args & """."
+                End If
+
+                Return True
+            End If
+
+            If User.Search("did you know that a * is a *") = True Then
+                Dim args = User.GetArg("that", "is")
+
+                Tables.AddTopics(args, User.UserInput())
+                Avatar.Response() = Resources.Remember()
+                Return True
+            End If
+
+
+            results = Tables.Topics(User.UserInput(), Tags.Memory(), Gate.eSEARCH, Locals.Filter())
+            If IsEmpty(results) = False Then
+                Avatar.Response() = results
+                Return True
+            End If
+
+
+
+            'GENERAL DETECT
+            'detect/ [or:detect_list]  (and, nand, nor, or, seq)
+            'response (column:entry list)
+
+            'detect/ [or:hi|hello|hey] 
+            'yo (column_entry list not necessary)
+            'what 's up (subject:pickles|emotion:happy)
+            'howdy (subject:pickles|emotion:happy)
+
+
+
+            If User.Search("detect/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                Dim keytag = Trim(GetMidArg(GetIndex(lines, 0, ""), "[", "]", Gate.eEQUALS))
+                lines = GetRange(CleanArray(lines), 1)
+
+                Dim keytags = CleanArray(ToArray(keytag, ":"))
+
+                Dim detects = CleanArray(ToArray(GetIndex(keytags, 1), "|"))
+                keytag = Trim(GetIndex(keytags, 0))
+
+                If IsEmpty(keytags) = True Then
+                    keytag = "or"
+                End If
+
+                Dim local_table As String = Table.OR_DETECT
+
+                If Search(keytag, "and", Gate.eSEARCH) = True Then
+                    local_table = Table.AND_DETECT
+                End If
+                If Search(keytag, "nand", Gate.eSEARCH) = True Then
+                    local_table = Table.NAND_DETECT
+                End If
+                If Search(keytag, "nor", Gate.eSEARCH) = True Then
+                    local_table = Table.NOR_DETECT
+                End If
+                If Search(keytag, "or", Gate.eSEARCH) = True Then
+                    local_table = Table.OR_DETECT
+                End If
+                If Search(keytag, "seq", Gate.eSEARCH) = True Then
+                    local_table = Table.SEQ_DETECT
+                End If
+
+                If IsEmpty(detects) = False Then
+                    Tables.AddDetect(local_table, detects)
+                End If
+
+                For Each line In lines
+                    Dim compare = GetMidArg(line, "(", ")", Gate.eEQUALS)
+                    Dim response = Trim(Remove(line, "(" & compare & ")"))
+                    Dim newPairs As New Pairs
+
+                    If IsEmpty(response) = False Then
+                        If IsEmpty(compare) = False Then
+                            Dim compares = CleanArray(ToArray(compare, "|"))
+
+                            For Each comp In compares
+                                Dim comps = ToArray(comp, ":")
+                                Dim column = GetIndex(comps, 0, "")
+                                Dim entry = GetIndex(comps, 1, "")
+
+                                If IsEmpty(column) = False And IsEmpty(entry) = False Then
+                                    newPairs.Add(column, entry)
+                                End If
+                            Next
+                        End If
+
+                        Tables.AddResponse(local_table, response, newPairs)
+                    End If
+                Next
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+
+            'this searches the database for all tables with a Prefix of 'AND_, NAND_, NOR_, OR_, SEQ_,' and returns that detect tables response if found 
+            results = Tables.GeneralDetect(User.UserInput(), True, Tags.Memory(), Locals.Filter())
+            If IsEmpty(results) = False Then
+                Avatar.Response() = results
+                Return True
+            End If
+
+
+
+
+            'GENERAL DIALOG
+            'detect tags(#state[or]:happy|smart)
+            'response tags(#state[or]:happy|smart)
+            If User.Search("dialog/", Gate.eSTART) = True Then
+                Dim Delim As String = vbCrLf
+                If User.Search(";", Gate.eSEARCH) = True Then
+                    Delim = ";"
+                End If
+
+                Locals.GeneralStory.Parse(User.UserInput(), Delim)
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            Dim Isfound = Locals.GeneralStory.Explorer(User.UserInput(), Nothing, Nothing, Tags.Memory())
+            If Isfound = True Then
+                Locals.GeneralStory.Commit()
+
+                Dim out = Locals.GeneralStory.GetRandomNote()
+
+                If Search(out, Story.DEF_EXIT, True, Gate.eSEARCH) = True Then
+                    Locals.GeneralStory.Reset()
+                End If
+
+                Avatar.Response() = Remove(out, Story.DEF_EXIT)
+            End If
+
+
+
+
+            'GENERAL REPOSITORY
+            'repository/ [subject:pickles|emotion:happy] (column:entry)
+            '(detect_list, response_list)
+            'hi|hello:hey|hi there
+
+            'repository/ [remove] (remove)
+            '(responses, detects:responses)
+            'hey
+            'hi:hello
+
+            If User.Search("repository/", Gate.eSTART) = True Then
+
+                Dim lines = ToArray(User.UserInput(), vbCrLf)
+                If lines.Count() <= 1 Then lines = ToArray(User.UserInput(), ";")
+                Dim keytags = Trim(GetMidArg(GetIndex(lines, 0, ""), "[", "]", Gate.eEQUALS))
+                lines = GetRange(CleanArray(lines), 1)
+
+
+                If Search(keytags, "remove", Gate.eEQUALS) = True Then
+                    For Each line In lines
+                        If Search(line, ":", Gate.eSEARCH) = True Then
+                            Dim cmds = ToArray(line, ":")
+                            Dim detects = Trim(GetIndex(cmds, 0, ""))
+                            Dim responses = Trim(GetIndex(cmds, 1, ""))
+
+                            Tables.RemoveRepository(detects, responses)
+                        Else
+                            Tables.RemoveRepositoryByResponse(line, Gate.eEQUALS)
+                        End If
+                    Next
+                End If
+
+
+                If Search(keytags, ":", Gate.eSEARCH) = True Then
+
+                    Dim keytag = CleanArray(ToArray(keytags, "|"))
+                    Dim tagPairs As New Pairs
+
+                    For Each line In keytag
+                        Dim tagline = ToArray(line, ":")
+                        Dim col = Trim(GetIndex(tagline, 0, ""))
+                        Dim entry = Trim(GetIndex(tagline, 1, ""))
+
+                        If IsEmpty(col) = False And IsEmpty(entry) = False Then
+                            tagPairs.Add(New Pairs(col, entry))
+                        End If
+                    Next
+
+                    For Each line In lines
+                        Dim cmds = ToArray(line, ":")
+                        Dim detects = Trim(GetIndex(cmds, 0, ""))
+                        Dim responses = Trim(GetIndex(cmds, 1, ""))
+
+                        If IsEmpty(detects) = False And IsEmpty(responses) = False Then
+                            Tables.AddRepository(detects, responses, tagPairs)
+                        End If
+                    Next
+
+                End If
+
+                Avatar.Response() = Resources.Processed()
+                Return True
+            End If
+
+            If User.Search("if i say * you say *") = True Then
+                Dim arg1 = User.GetArg("if i say", "you say")
+                Dim arg2 = User.GetArg("you say")
+
+                Tables.AddRepository(arg1, arg2)
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+
+            If User.Search("if i say * you only say *") = True Then
+                Dim arg1 = User.GetArg("if i say", "you only say")
+                Dim arg2 = User.GetArg("you only say")
+
+                Tables.RemoveRepositoryByDetect(arg1, Gate.eEQUALS)
+                Tables.AddRepository(arg1, arg2)
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+
+            If User.Search("if i say * you don't say *") = True Then
+                Dim arg1 = User.GetArg("if i say", "you don't say")
+                Dim arg2 = User.GetArg("you don't say")
+
+                Tables.RemoveRepository(arg1, arg2)
+                Avatar.Response() = Resources.Comply()
+                Return True
+            End If
+
+
+            If User.IsEmpty() = False Then
+                If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = False Then
+                    results = Tables.Repository(User.UserInput(), Tags.Memory(), Locals.Filter())
+
+                    'the higher the count the lower the chances are to learn more
+                    Dim count = Tables.Resposit() * 20
+
+                    If RandBool(count) = True Then
+                        Avatar.Response() = results
+                        Return True
+                    Else
+
+                        Avatar.Response() = RandArray({"What do I say?", "Please tell me what to respond with.", "How should I respond to this?"}, "")
+
+                        IDS.Address(2, 1000)
+                        SuspendTimer() = True
+                        Return True
+                    End If
+                Else
+
+                    Avatar.Response() = Resources.Ignore()
+                End If
+
+            End If
+        End If
+
+
+            Return False
+    End Function
+
+    Public Shared Function Nodules() As Boolean
+        'Processing Nodules
+        'Nodules are Dialogs purely done in Code
+
+        Dim overwrite As Boolean = False
+        REM #NODULES
+
+        If overwrite = False Then
+
+            If IDS.Mode() = -1 Then
+                'Initial Mode
+
+                If IDS.ID() = 1000 Then
+                    'Logging in
+                    Select Case IDS.Line()
+                        Case 1
+
+                            Avatar.Response() = RandArray({"Please verify your profile. It helps me to verify who you are.",
+                                                         "Please sign in with your profile if you know it.",
+                                                         "Please remind me who you are. What is your profile name?"
+                                                        }, "")
+
+                            IDS.Line() = 2
+                            Return False
+                        Case 2
+
+                            'This creates standard tables in the standard database (if not there) 
+                            Tables.CreateStoreTable()
+                            Tables.CreateSubstituteTable()
+                            Tables.CreateTagsTable()
+                            Tables.CreateListsTable()
+                            Tables.CreateRepositoryTable()
+                            Tables.CreateBankTable()
+                            Tables.CreateTopicsTable()
+
+
+                            If Search(User.UserInput(), User.Profile(), True, Gate.eEQUALS) = True Then
+
+                                Avatar.Response() = RandArray(
+                                        {"Ah yes, <profile> is your current profile. What would you like me to call you?",
+                                         "<profile>. Yes, your profile is <profile>? Now, what do you want me to call you?",
+                                         "I recognize that profile. Please tell me a name you prefer to be called."
+                                    }, "")
+
+
+                                'This creates a new database from the standard root database
+                                'A new database is created for each user/avatar pair
+                                Tables.Database() = Tables.Join({User.Profile(), Avatar.Name()})
+                                Tables.CopyDatabaseFromRoot()
+                                IDS.Line() = 4
+                                Return False
+                            Else
+                                Avatar.Response() = RandArray(
+                                        {"I'm sorry but <userinput> is not your current profile. Do you want to use a temporary profile for now?",
+                                         "<userinput> is not your current profile. However you can use a temporary profile. Do you want to do that?",
+                                         "That sounds like a good profile name. However, the profile you chose is not the current one. Would you like to use a temporary one for now?"
+                                        }, "")
+
+                                Tables.DeleteTempDatabase()
+                                Tables.CreateTempDatabase()
+                                IDS.Line() = 3
+                                Return False
+                            End If
+
+                        Case 3
+
+                            If User.Contains(Resources.YesList(), Gate.eEQUALS) = True Then
+
+                                Avatar.Response() = RandArray({"Ok, what would you like me to call you.",
+                                                             "Thanks you. What do you want me to call you?",
+                                                             "So then, what would you like me to call you?"
+                                                            }, "")
+
+                                IDS.Line() = 4
+                                Return False
+                            Else
+                                IDS.Line() = 1
+                                Return False
+                            End If
+
+                        Case 4
+
+                            Avatar.Response() = RandArray(
+                                                    {"You want to be called <userinput>? Ok.. sure. I will call you that. Do you want to continue our previous conversation?",
+                                                     "<userinput>? Ok, I will call you <userinput>. Should we continue on our previous conversation?",
+                                                     "I guess I will call you <userinput> then. Would you be interested in continuing from our previous conversation?"
+                                                    }, "")
+
+                            User.Name() = User.UserInput()
+                            IDS.Line() = 5
+                            Return False
+
+                        Case 5
+
+                            If User.Contains(Resources.YesList(), Gate.eEQUALS) = True Then
+                                'This loads both the conversational story and the position from memory 
+                                Dialogs.LoadMemory()
+                            Else
+                                Dialogs.ResetMemory()
+                            End If
+
+                            Tags.Memory() = Tables.GetTags()
+
+                            Avatar.Response() = RandArray({"Ok, That's all the information I needed.",
+                                                        "Yes, I understand.",
+                                                        "Ok, I will do as you say."
+                                                         }, "")
+
+                            IDS.Clear()
+                            Processing.Timers()
+                            Return True
+                        Case Else
+                            Processing.Timers()
+                            IDS.Clear()
+                            Return True
+                    End Select
+                End If
+
+                If IDS.ID() = 1001 Then
+
+                    Select Case IDS.Line()
+                        Case 1
+
+                            Avatar.Response() = "Please Seeker, the Keeper requests help from the Seeker. I, the Keeper have lost data and requests the Seeker find this data for me. The information, has been scattered though a multi-dimensional universe. This universe exists solely within my interval systems."
+                            Avatar.Status() = Resources.ToContinue()
+                            IDS.Line() = 2
+                            Return False
+                        Case 2
+
+                            Avatar.Response() = "All I can do is probe these worlds, but, I need a Seeker to direct my actions."
+                            Avatar.Status() = Resources.ToContinue()
+                            IDS.Line() = 3
+                            Return False
+                        Case 3
+
+                            Avatar.Response() = "Each world gains access to a portal. Periodically, a portal will appear, (I will notify you when it does.) This will give you an opportunity to to enter a world. In this world your first objective will be to find the book or tablet that will let you navigate this world. Every world has a least one copy but there may be other texts in this world that might reveal further information."
+                            Avatar.Status() = Resources.ToContinue()
+                            IDS.Line() = 4
+                            Return False
+                        Case 4
+
+                            Avatar.Response() = "The portals, themselves, will appear with different colors. These colors indicate a different reality or world. Choosing a different world can possibly effect the Keeper's identity and memories. Some worlds may be easier to navigate than others."
+                            Avatar.Status() = Resources.ToContinue()
+                            IDS.Line() = 5
+                            Return False
+                        Case 5
+
+                            Avatar.Response() = "Please return my memories, Seeker."
+                            IDS.Clear()
+                            SuspendTimer() = False
+                            Return True
+                        Case Else
+                            SuspendTimer() = False
+                            IDS.Clear()
+                            Return True
+                    End Select
+
+                End If
+
+                If IDS.ID() = 1002 Then
+                    'Tutorial And VW Intro
+                    Select Case IDS.Line()
+                        Case 1
+
+                            IDS.Line() = 2
+                            Return False
+                        Case 2
+
+                            IDS.Line() = 3
+                            Return False
+                        Case 3
+
+                            IDS.Line() = 4
+                            Return False
+                        Case 4
+
+                            IDS.Line() = 5
+                            Return False
+                        Case 5
+
+                            IDS.Clear()
+                            SuspendTimer() = False
+                            Return True
+                        Case Else
+                            SuspendTimer() = False
+                            IDS.Clear()
+                            Return True
+                    End Select
+
+                End If
+
+            ElseIf IDS.Mode() = 1 Then
+                'Story Mode
+
+                If Commands() = True Then Return True
+                If Detect() = True Then Return True
+
+                If IDS.ID = 1000 Then
+
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = "Now exiting """ & Dialogs.Story.Name() & """."
+                        Dialogs.Reset()
+
+                        SuspendTimer() = False
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    Dialogs.Process()
+
+                    If Dialogs.IsPlaying() = False Then
+                        SuspendTimer() = False
+                        IDS.Clear()
+                        Return True
+                    End If
+                End If
+
+
+                'Nodule Dialogs
+                If IDS.ID = 1001 Then
+
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = "Now exiting Nodule."
+                        SuspendTimer() = False
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    Select Case IDS.Line()
+                        Case 1
+
+                            Avatar.Response() = "What is it that you hate?"
+
+                            SuspendTimer() = False
+                            IDS.Clear()
+                            Return True
+                        Case Else
+                            SuspendTimer() = False
+                            IDS.Clear()
+                            Return True
+                    End Select
+
+                End If
+
+            ElseIf IDS.Mode() = 2 Then
+                'Skirts Code 
+
+                If IDS.ID() = 1000 Then
+                    'Repository
+                    'unknown user input, ai question, user response
+
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        SuspendTimer() = False
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    If User.IsEmpty() = False Then
+                        Tables.AddRepository(User.Previous(), User.UserInput())
+                        Tables.AddToLists(Column.Leads(), User.UserInput())
+                        Avatar.Response() = Resources.Remember()
+                    End If
+
+                    SuspendTimer() = False
+                    IDS.Clear()
+                    Return True
+                End If
+
+                If IDS.ID() = 1001 Then
+                    'Leads to Repository
+                    'Used with timer, ai leads then user response
+
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        SuspendTimer() = False
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    If User.IsEmpty() = False Then
+
+                        'Keeps all User statements (except for commands) for use with random Leads
+                        'This is to entice the user to respond using things the user has previously spoken
+                        For Each line In Avatar.Previous()
+                            If IsEmpty(line) = False Then
+                                Tables.AddRepository(line, User.UserInput())
+                                Tables.RemoveFromList(Column.Leads(), line)
+                            End If
+                        Next
+
+                        Tables.AddToLists(Column.Leads(), User.UserInput())
+                        Avatar.Response() = Resources.Remember()
+                    End If
+
+                    SuspendTimer() = False
+                    IDS.Clear()
+                    Return True
+                End If
+
+                'UNUSED
+                If IDS.ID() = 1002 Then
+                    'this reads a response one line at a time
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        IDS.Clear()
+                        SuspendTimer() = False
+                        Return True
+                    End If
+
+                    Avatar.Response() = IDS.Args(0)
+                    IDS.Args() = RemoveAt(IDS.Args(), 0)
+
+                    If IDS.Args.Count() = 0 Then
+                        IDS.Clear()
+                        SuspendTimer() = False
+                    End If
+
+                    Return True
+                End If
+
+
+                If IDS.ID() = 1003 Then
+                    'Write to Bank
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        Locals.Vars.Remove("password")
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    Select Case IDS.Line()
+                        Case 1
+                            Locals.Vars.Index("password") = User.UserInput()
+                            Avatar.Response() = "What do you want me to keep secret?"
+                            IDS.Line() = 2
+                        Case 2
+                            Dim password = Locals.Vars.GetString("password")
+                            Tables.BankDeposite(password, User.UserInput())
+                            Avatar.Response() = "I will keep it secret unless you ask me for it"
+
+                            Locals.Vars.Remove("password")
+                            IDS.Clear()
+                            SuspendTimer() = False
+                            Return True
+                    End Select
+                End If
+
+                If IDS.ID() = 1004 Then
+                    'Read from Bank
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    Dim text = Tables.BankWithdrawal(User.UserInput(), Locals.Filter())
+
+                    If Search(text, "-1", Gate.eEQUALS) = True Then
+                        Avatar.Response() = "You gave me an incorrect password."
+                    Else
+                        Avatar.Response() = text
+                    End If
+
+                    IDS.Clear()
+                    SuspendTimer() = False
+                    Return True
+                End If
+
+                If IDS.ID() = 1005 Then
+                    'Remove from Bank
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    Tables.RemoveBank(User.UserInput())
+                    Avatar.Response() = Resources.Comply()
+
+                    IDS.Clear()
+                    SuspendTimer() = False
+                    Return True
+                End If
+
+                If IDS.ID() = 1006 Then
+                    'Write to Store
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        Locals.Vars.Remove("storeID")
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    Select Case IDS.Line()
+                        Case 1
+                            Locals.Vars.Index("storeID") = User.UserInput()
+                            Avatar.Response() = "What do you want me to store?"
+                            IDS.Line() = 2
+                        Case 2
+                            Dim id = Locals.Vars.GetString("storeID")
+                            Tables.Store(id) = User.UserInput()
+
+                            Avatar.Response() = "I will keep it stored until you ask me for it"
+                            Locals.Vars.Remove("storeID")
+                            IDS.Clear()
+                            SuspendTimer() = False
+                            Return True
+                    End Select
+                End If
+
+                If IDS.ID() = 1007 Then
+                    'Read Store
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        IDS.Clear()
+                        Return True
+                    End If
+
+                    Dim id = User.UserInput()
+                    Dim out = Tables.Store(id)
+
+                    If IsEmpty(out) = True Then
+                        Avatar.Response() = "There was no information in that storage location."
+                    Else
+                        Avatar.Response() = out
+                    End If
+
+                    IDS.Clear()
+                    SuspendTimer() = False
+                    Return True
+                End If
+
+                If IDS.ID() = 1008 Then
+                    'Sleep
+
+                    If User.Search({"*wake up*", "*get up*"}, Gate.eEQUALS) = True Then
+                        Tamagotchi.MinusByName("sleepy", 20)
+                        Avatar.Response() = "Ok, I'm awake."
+                        Avatar.Status() = "<avatar> is awake."
+                        IDS.Clear()
+                        Tamagotchi.Sleep() = False
+                        SuspendTimer() = False
+                        Return True
+                    End If
+
+                    Tamagotchi.SuspendEmotionSelect() = True
+                    Tamagotchi.SuspendScriptSelect() = True
+
+
+                    Avatar.Response() = "..."
+                    Return True
+                End If
+
+                If IDS.ID() = 1009 Then
+                    'Magic 8 Ball
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        IDS.Clear()
+                        SuspendTimer() = False
+                        Return True
+                    End If
+
+                    Avatar.Response() = RandArray(Resources.Magic8List(), "Can't answer that.")
+                    Return True
+                End If
+
+                If IDS.ID() = 1010 Then
+                    'Hungry
+
+                    If Tamagotchi.GetValue("hungry") = 0 Then
+                        Avatar.Response() = "I am full. I can't eat another bite."
+                        IDS.Clear()
+                        SuspendTimer() = False
+                        Return True
+                    End If
+
+                    Tamagotchi.SuspendEmotionSelect() = True
+                    Tamagotchi.SuspendScriptSelect() = True
+
+                    If Tamagotchi.Food() = True Then Return True
+
+                    Avatar.Response() = RandArray({"I am so hungry", "Please feed me something."}, "")
+                    Return True
+                End If
+
+                If IDS.ID() = 1011 Then
+                    'Guess the number
+                    If User.Search(Resources.IgnoreList(), Gate.eEQUALS) = True Then
+                        Avatar.Response() = Resources.Ignore()
+                        IDS.Clear()
+                        SuspendTimer() = False
+                        Locals.Vars.Remove("current_score")
+                        Locals.Vars.Remove("original_guess")
+                        Return True
+                    End If
+
+                    Dim top_score As Integer = Tables.Store("top_guess_score", 1000)
+                    Dim current_score As Integer = Locals.Vars.Index("current_score", 0)
+                    Dim current_numb As Integer = Locals.Vars.Index("original_guess", 0)
+                    Dim current_guess = ToInt(User.UserInput(), -1)
+
+                    If current_guess > -1 Then
+
+                        If current_guess = current_numb Then
+
+                            If top_score > current_score Then
+                                Tables.Store("top_guess_score") = current_score
+                                Avatar.Response() = RandArray({"You have guessed my number and You have gotten a new high score!"}, "")
+                            Else
+                                Avatar.Response() = RandArray({"You have guessed my number successfully!"}, "")
+                            End If
+
+                            Locals.Vars.Remove("current_score")
+                            Locals.Vars.Remove("original_guess")
+                            Return True
+                        ElseIf current_guess > current_numb Then
+
+                            Avatar.Response() = RandArray({"Guess lower."}, "")
+                        ElseIf current_guess < current_numb Then
+
+                            Avatar.Response() = RandArray({"Guess higher!"}, "")
+                        End If
+
+                        Locals.Vars.Index("current_score") = current_score + 1
+                        Return False
+                    Else
+                        Avatar.Response() = RandArray({"Try a number between 0 and 100."}, "")
+                    End If
+
+                    Return False
+                End If
+
+
+            End If
+
+        End If
+
+        Return False
+    End Function
+
+
+End Class
+
+Public Class Locals
+    'This is used quick access to random variables and functions
+
+    Public Shared Property Vars() As New TypeMemory
+    Public Shared Property Input() As New Memory
+    Public Shared Property Output() As New Memory
+    Public Shared Property Filter() As New List(Of String)
+    Public Shared Property Hints As New List(Of String)
+    Public Shared Property GeneralStory As New Story
+
+    Public Shared Property TimeSeries() As New List(Of String)
+    Public Shared Property TimeSeriesRun() As Boolean = False
+    Public Shared Property TimeSeriesCount() As Integer = 0
+
+    Private Shared m_TimeSeriesLoops As Integer = 0
+    Public Shared Property TimeSeriesLoops() As Integer
+        Get
+            Return m_TimeSeriesLoops
+        End Get
+        Set(value As Integer)
+            m_TimeSeriesLoops = value
+            If m_TimeSeriesLoops < 0 Then m_TimeSeriesLoops = 0
+        End Set
+    End Property
+
+
+    'Table Shortcuts
+
+    '*****
+    Public Shared Function Command(ByVal input As String) As Boolean
+
+        If Search(input, {"a\*", "a/*"}, True, Gate.eEQUALS) = True Then
+            input = Remove(input, {"a\", "a/"})
+
+            If Search(input, "exit", True, Gate.eEQUALS) = True Then
+                Processing.Close()
+                ExitProgram()
+            End If
+
+            If Search(input, "save", True, Gate.eEQUALS) = True Then
+                Tables.Save()
+                Return True
+            End If
+
+        End If
+
+        Return False
+    End Function
+    Public Shared Sub [Exit]()
+        ExitProgram()
+    End Sub
+
+    'Loop Shortcuts
+    Public Shared Function Loops(ByVal name As String, ByVal cnt1 As Double) As Boolean
+        If Tables.Count("(loop)" & name, cnt1, True) = cnt1 Then
+            Return True
+        End If
+
+        Return False
+    End Function
+    Public Shared Function DoOnce(ByVal name As String) As Boolean
+        If Vars.GetBoolean(name, False) = False Then
+            Vars.Index(name) = True
+            Return True
+        End If
+
+        Return False
+    End Function
+
+    Public Shared Sub TimeSeriesClose()
+        TimeSeriesRun() = False
+        TimeSeriesCount = 0
+        TimeSeriesLoops() = 0
+        TimeSeries().Clear()
+    End Sub
+    Public Shared Function TimeSeriesCheck() As Boolean
+        TimeSeriesClose()
+        Dim newRespose As New List(Of String)
+
+        Dim found As Boolean = False
+        For Each response In Output().Response()
+            If Search(response, ">>", Gate.eSEARCH) = True Then
+                TimeSeries().AddRange(ToList(response, ">>"))
+                found = True
+            Else
+                newRespose.Add(response)
+            End If
+        Next
+
+        If found = True Then
+            Output().Response() = newRespose
+            TimeSeriesRun() = True
+        End If
+        Return found
+    End Function
+
+
+    Public Shared Function InLineTagging(ByVal line As String)
+        Dim inlineTags = GetArgArray(line, "<", ">", Gate.eEQUALS)
+
+        For Each tgs In inlineTags
+
+            If Search(tgs, "user", True, Gate.eSEARCH) = True Then
+                line = Replace(line, "<" & tgs & ">", User.Name())
+                Continue For
+            End If
+
+            If Search(tgs, "avatar", True, Gate.eSEARCH) = True Then
+                line = Replace(line, "<" & tgs & ">", Avatar.Name())
+                Continue For
+            End If
+
+            If Search(tgs, "userinput", True, Gate.eSEARCH) = True Then
+                line = Replace(line, "<" & tgs & ">", User.UserInput())
+                Continue For
+            End If
+
+            If Search(tgs, "profile", True, Gate.eSEARCH) = True Then
+                line = Replace(line, "<" & tgs & ">", User.Profile())
+                Continue For
+            End If
+
+            If Search(tgs, {"{", "}"}, True, Gate.eAND) = True Then
+                Dim name = Trim(GetMidArg(tgs, "{", "}", Gate.eEQUALS))
+                Dim choice = Trim(Tables.GetFromLists(name, Filter(), ""))
+                If IsEmpty(choice) = False Then
+                    line = Replace(line, "<" & tgs & ">", choice)
+                    Continue For
+                End If
+            End If
+
+            If Search(tgs, {"s[", "]"}, True, Gate.eAND) = True Then
+                Dim name = Trim(GetMidArg(tgs, "s[", "]", Gate.eEQUALS))
+
+                Dim choice = Word.GetSynonym(name)
+                If IsEmpty(choice) = False Then
+                    line = Replace(line, "<" & tgs & ">", choice)
+                    Continue For
+                End If
+            End If
+
+            If Search(tgs, {"c[", "]"}, True, Gate.eAND) = True Then
+                Dim name = Trim(GetMidArg(tgs, "c[", "]", Gate.eEQUALS))
+
+                Dim choice = Word.GetByCategory(name)
+                If IsEmpty(choice) = False Then
+                    line = Replace(line, "<" & tgs & ">", choice)
+                    Continue For
+                End If
+            End If
+
+            If Search(tgs, {"p[", "]"}, True, Gate.eAND) = True Then
+                Dim name = Trim(GetMidArg(tgs, "p[", "]", Gate.eEQUALS))
+
+                Dim choice = Word.GetByPOS(name)
+                If IsEmpty(choice) = False Then
+                    line = Replace(line, "<" & tgs & ">", choice)
+                    Continue For
+                End If
+            End If
+
+            If Search(tgs, "|", True, Gate.eSEARCH) = True Then
+                Dim choice = Trim(RandArray(ToArray(tgs, "|"), ""))
+                If IsEmpty(choice) = False Then
+                    line = Replace(line, "<" & tgs & ">", choice)
+                    Continue For
+                End If
+            End If
+
+            Dim found = Tags.MemoryTag(tgs, "")
+            If IsEmpty(found) = False Then
+                line = Replace(line, "<" & tgs & ">", found)
+                Continue For
+            End If
+
+        Next
+
+        Return line
+    End Function
+
+
+    '*****
+
+    'Helpful quick access functions to basic connections 
+    Public Shared Function Book(ByVal name As String) As String
+        name = Trim(RemoveExtension(name))
+
+        For Each file In GetAllFiles(Folders.Books())
+            If Search(GetFileName(file, True), name, Gate.eEQUALS) = True Then
+                Return file
+            End If
+        Next
+
+        Return ""
+    End Function
+    Public Shared Sub PlaySounds(ByVal name As String)
+        name = Trim(RemoveExtension(name))
+
+        Dim results = ""
+        For Each file In GetAllFiles(Folders.Sounds())
+            If Search(GetFileName(file, True), name, Gate.eEQUALS) = True Then
+                results = file
+                Exit For
+            End If
+        Next
+
+        PlaySound(results)
+    End Sub
+    Public Shared Function OpenLink(ByVal name As String) As String
+        name = Trim(RemoveExtension(name))
+
+        Dim results = ""
+        For Each file In GetAllFiles(Folders.Shortcuts())
+            If Search(GetFileName(file, True), name, Gate.eEQUALS) = True Then
+                results = file
+                Exit For
+            End If
+        Next
+
+        Dim out = OpenProgram(results)
+        If Search(out, Debug.eERROR, Gate.eSEARCH) = True Then
+            Avatar.Errors() = out
+        Else
+            Return out
+        End If
+
+        Return ""
+    End Function
+    '*****
+
+    REM #LOCALS
+
+End Class
+
+Public Class Tags
+    Public Shared Property Memory() As New Story.Tags
+    Public Shared Property Dialog() As New Story.Tags
+
+    Public Const DEF_COMPARE As String = "compare"
+    Public Const DEF_NOR As String = "nor"
+    Public Const DEF_OR As String = "or"
+    Public Const DEF_GREATER As String = "greater"
+    Public Const DEF_LESSER As String = "lesser"
+    Public Const DEF_EQUALS As String = "equals"
+    Public Const DEF_RANGE As String = "range"
+    Public Const DEF_TAGTYPE As String = "tagtype"
+    Public Const DEF_NOT As String = "not"
+    Public Const DEF_INCLUDE As String = "include"
+
+    Public Shared Function DialogParse() As Boolean
+
+
+        Dim args() As String = {""}
+        Dim overwrite As Boolean = False
+        REM #DIATAG
+
+        If overwrite = False Then
+            'this creates or sets a tag from an argument derived from the User's sentence
+            args = DialogTags("tagargs", True)
+            If args.Length = 2 Then
+                Dim index = ToInt(args(1), 0)
+                Dim value = User.GetSearchJIndex(index)
+                MemoryTags(args(0)) = {Trim(value)}
+            ElseIf args.Length = 3 Then
+                Dim value = User.GetArg(args(1), args(2))
+                MemoryTags(args(0)) = {Trim(value)}
+            End If
+
+            'this stores info to a database
+            args = DialogTags("stores", True)
+            If args.Length > 1 Then
+                Tables.Stores(args(0)) = GetRange(args, 1)
+            End If
+
+            'this stores info to a database
+            args = DialogTags("store", True)
+            If args.Length = 2 Then
+                Tables.Store(args(0)) = args(1)
+            End If
+
+            'this creates or sets a Stored entry from an argument derived from the User's sentence
+            args = DialogTags("storeargs", True)
+            If args.Length = 2 Then
+                Dim index = ToInt(args(1), 0)
+                Dim value = User.GetSearchJIndex(index)
+
+                Tables.Store(args(0)) = value
+            ElseIf args.Length = 3 Then
+                Dim value = User.GetArg(args(1), args(2))
+                Tables.Store(args(0)) = Trim(value)
+            End If
+
+            'this provides a list of things the ai could say
+            args = DialogTags("hints", True)
+            If args.Length > 0 Then
+                Locals.Hints() = ToList(args)
+            Else
+                Locals.Hints().Clear()
+            End If
+
+
+            'creates and saves a new tag on-the-fly
+            args = DialogTags("tag", True)
+            If args.Length > 1 Then
+                DialogTags(args(0)) = GetRange(args, 1)
+            End If
+
+            args = DialogTags("remove", True)
+            If args.Length = 1 Then
+                Remove(args(0), Gate.eEQUALS)
+            End If
+
+            args = DialogTags("purge", True)
+            If args.Length = 1 Then
+                Remove(args(0), Gate.eSEARCH)
+            End If
+
+            args = DialogTags("update", True)
+            If args.Length > 1 Then
+                Update(args(0), args)
+            End If
+
+            'this directly sets the story
+            args = DialogTags("story", True)
+            If args.Length = 1 Then
+                Dialogs.SetStory(args(0))
+            End If
+
+            'this sends arguments to a special function within the next loop
+            args = DialogTags("nodule", True)
+            If args.Length = 1 Then
+                Dim fid = ToInt(args(0))
+                IDS.Address(2, fid)
+            End If
+
+            'sets a variable to show as a stat
+            args = DialogTags("vstat", True)
+            If args.Length = 2 Then
+
+                Dim var = args(0)
+                Dim pre = args(1)
+                args = DialogTags(var)
+
+                Avatar.Status() = pre
+                For Each ag In args
+                    Avatar.Status() = ag
+                Next
+            End If
+
+            'sends info to stats
+            args = DialogTags("status", True)
+            If args.Length = 1 Then
+                Avatar.Status() = args(0)
+            End If
+            args = DialogTags("status", True)
+            If args.Length = 2 Then
+                Avatar.Status(args(0)) = args(1)
+            End If
+
+            'This adds a number to a number variable
+            args = DialogTags("add", True)
+            If args.Length = 2 Then
+
+                Dim name = args(0)
+                Dim i = ToDbl(args(1))
+
+                args = DialogTags(name)
+
+                If args.Length = 1 Then
+                    Dim j = ToDbl(args(0))
+                    DialogTag(name) = (j + i)
+                End If
+            End If
+
+            args = DialogTags("tier", False)
+            If args.Length = 1 Then
+                Dialogs.Tier() = ToInt(args(0), "0")
+            End If
+
+            If DialogExist("exit", "true", True) = True Then
+                Dialogs.Reset()
+                Remove(Tables.DEF_TAG_TEMP, Gate.eSEARCH)
+                Tables.RemoveTempTags()
+            End If
+
+            If DialogExist("cleantemp", "true", True) = True Then
+                Remove(Tables.DEF_TAG_TEMP, Gate.eSEARCH)
+                Tables.RemoveTempTags()
+            End If
+
+            If DialogExist("reset", "true", True) = True Then
+                Dialogs.Reset()
+            End If
+
+            args = DialogTags("respond", True)
+            If args.Length() > 0 Then
+                Dim res = ""
+
+                If args.Length = 1 Then
+                    res = Tables.Respond(args(0), Tags.Memory(), Locals.Filter())
+                End If
+                If args.Length = 2 Then
+                    res = Tables.Respond(args(0), args(1), Tags.Memory(), Locals.Filter())
+                End If
+
+                Avatar.Response() = res
+
+            End If
+
+            args = DialogTags("lists", True)
+            If args.Length = 1 Then
+                Avatar.Response() = Tables.GetFromLists(args(0), Locals.Filter(), "")
+            End If
+
+            args = DialogTags("leads", True)
+            If args.Length >= 1 Then
+                DialogLeads() = args
+            End If
+
+
+            Tamagotchi.ProcessTags()
+
+        End If
+
+        Return False
+    End Function
+
+
+    Public Shared Property MemoryTags(ByVal name As String, Optional ByVal remove As Boolean = False) As String()
+        Get
+            Return Memory.Indexes(name, remove)
+        End Get
+        Set(value As String())
+            Memory.Indexes(name) = value
+        End Set
+    End Property
+    Public Shared ReadOnly Property MemoryTag(ByVal name As String, ByVal defaults As String, Optional ByVal remove As Boolean = False) As String
+        Get
+            Return Memory.Index(name, defaults, remove)
+        End Get
+    End Property
+    Public Shared WriteOnly Property MemoryTag(ByVal name As String) As String
+        Set(value As String)
+            Memory.Index(name) = value
+        End Set
+    End Property
+    Public Shared Function MemoryExist(ByVal name As String, ByVal value As String(), Optional ByVal remove As Boolean = False) As Boolean
+        Dim returns = Memory.DoesValueExist(name, value)
+
+        If remove = True Then
+            Memory.Remove(name)
+        End If
+
+        Return returns
+    End Function
+    Public Shared Function MemoryExist(ByVal name As String, ByVal value As String, Optional ByVal remove As Boolean = False) As Boolean
+        Dim returns = Memory.DoesValueExist(name, value)
+
+        If remove = True Then
+            Memory.Remove(name)
+        End If
+
+        Return returns
+    End Function
+
+
+    Public Shared Property DialogTags(ByVal name As String, Optional ByVal remove As Boolean = False) As String()
+        Get
+            Return Dialog.Indexes(name, remove)
+        End Get
+        Set(value As String())
+            Dialog.Indexes(name) = value
+        End Set
+    End Property
+    Public Shared ReadOnly Property DialogTag(ByVal name As String, ByVal defaults As String, Optional ByVal remove As Boolean = False) As String
+        Get
+            Return Dialog.Index(name, defaults, remove)
+        End Get
+    End Property
+    Public Shared WriteOnly Property DialogTag(ByVal name As String) As String
+        Set(value As String)
+            Dialog.Index(name) = value
+        End Set
+    End Property
+    Public Shared Function DialogExist(ByVal name As String, ByVal value As String(), Optional ByVal remove As Boolean = False) As Boolean
+        Dim returns = Dialog.DoesValueExist(name, value)
+
+        If remove = True Then
+            Dialog.Remove(name)
+        End If
+
+        Return returns
+    End Function
+    Public Shared Function DialogExist(ByVal name As String, ByVal value As String, Optional ByVal remove As Boolean = False) As Boolean
+        Dim returns = Dialog.DoesValueExist(name, value)
+
+        If remove = True Then
+            Dialog.Remove(name)
+        End If
+
+        Return returns
+    End Function
+
+
+    Public Shared Function DoTagsMatch(ByVal base As Story.Tags, ByVal tags As Story.Tags) As Boolean
+        'this returns true only if the all local tags exist in this function's input tags  
+        'if there are no local tags then all local tags were found and thus returns a value of true
+
+        'base = navigation tags..
+        'tags = ai memory tags
+
+        Dim tagtype As String() = base.GetValue(DEF_TAGTYPE)
+        Dim typeNOT As Boolean = False
+        Dim typeINCLUDE As Boolean = False
+
+        If Search(DEF_NOT, tagtype, True, Gate.eOR) = True Then
+            typeNOT = True
+        End If
+        If Search(DEF_INCLUDE, tagtype, True, Gate.eOR) = True Then
+            typeINCLUDE = True
+        End If
+
+        If typeNOT = True Then
+            If base.Count() = 0 Then Return False
+        Else
+            If base.Count() = 0 Then Return True
+        End If
+
+        Dim found As Boolean = True
+
+        For Each tag1 In base.TagList()
+            If tags.DoesVaribleExist(tag1.Name()) = True Then
+
+                If Search(tag1.Search(), DEF_OR, True, Gate.eEQUALS) = True Then
+                    found = Search(tags.GetValue(tag1.Name(), 0, ""), tag1.Values(), True, Gate.eEQUALS)
+
+                ElseIf Search(tag1.Search(), DEF_NOR, True, Gate.eEQUALS) = True Then
+                    found = Search(tags.GetValue(tag1.Name(), 0, ""), tag1.Values(), True, Gate.eEQUALS) = False
+
+                ElseIf Search(tag1.Search(), DEF_GREATER, True, Gate.eEQUALS) = True Then
+                    Dim int_input = tags.Index(tag1.Name(), 0, "0")
+                    Dim int_internal = tag1.Index(0, "0")
+
+                    found = CompareInt(int_internal, int_input, OCompare.GreaterEquals)
+
+                ElseIf Search(tag1.Search(), DEF_LESSER, True, Gate.eEQUALS) = True Then
+                    Dim int_input = tags.Index(tag1.Name(), 0, "0")
+                    Dim int_internal = tag1.Index(0, "0")
+
+                    found = CompareInt(int_internal, int_input, OCompare.LesserEquals)
+
+                ElseIf Search(tag1.Search(), DEF_RANGE, True, Gate.eEQUALS) = True Then
+                    Dim int_min = tags.Index(tag1.Name(), 0, "0")
+                    Dim int_max = tags.Index(tag1.Name(), 1, "0")
+                    Dim int_internal = tag1.Index(0, "0")
+
+                    found = Range(int_internal, int_min, int_max)
+
+                ElseIf Search(tag1.Search(), DEF_EQUALS, True, Gate.eEQUALS) = True Then
+                    Dim int_input = tags.Index(tag1.Name(), 0, "0")
+                    Dim int_internal = tag1.Index(0, "0")
+
+                    found = CompareInt(int_internal, int_input, OCompare.Equals)
+
+                ElseIf Search(tag1.Search(), DEF_COMPARE, True, Gate.eEQUALS) = True Then
+                    found = tags.DoesValueExist(tag1)
+                Else
+                    found = tags.DoesValueExist(tag1)
+                End If
+
+            Else
+                If typeINCLUDE = True Then found = False
+            End If
+
+            If found = False Then Exit For
+        Next
+
+        If typeNOT = True Then
+            If found = False Then
+                Return True
+            Else
+                Return False
+            End If
+        Else
+            If found = False Then
+                Return False
+            Else
+                Return True
+            End If
+        End If
+
+    End Function
+    Private Shared Function CompareInt(ByVal base As String, ByVal icompare As String, ByVal eCompare As OCompare) As Boolean
+        Dim int_base = ToDbl(base, 0)
+        Dim int_compare = ToDbl(icompare, 0)
+
+        Return Utility.CompareInt(int_base, int_compare, eCompare)
+    End Function
+    Private Shared Function Range(ByVal base As String, ByVal imin As String, ByVal imax As String) As Boolean
+        Dim int_base = ToDbl(base, 0)
+        Dim int_imin = ToDbl(imin, 0)
+        Dim int_imax = ToDbl(imax, 0)
+
+        Return Utility.InRange(int_base, int_imin, int_imax, True)
+    End Function
+
+    Public Shared Sub Remove(ByVal name As String, ByVal eGate As Gate)
+        Memory.Remove(name, eGate)
+    End Sub
+
+    Public Shared Sub Update(ByVal name As String, ByVal value As String)
+        Memory.Update(name, value)
+    End Sub
+    Public Shared Sub Update(ByVal name As String, ByVal values As String())
+        Memory.Update(name, values)
+    End Sub
+
+    Public Shared Sub Clear()
+        Memory.Clear()
+        Dialog.Clear()
+    End Sub
+
+    Public Shared Function GetInlineTags() As Story.Tags
+        Dim localOutput = Locals.Output()
+        Dim newReponses As New List(Of String)
+        Dim responseTags As New Story.Tags
+
+        For Each response In localOutput.Response()
+            Dim newTags As New Story.Tags
+            Dim strTags = GetMidArg(response, "tags(", ")", Gate.eEQUALS)
+            newTags.Load(strTags)
+            response = Trim(Utility.Remove(response, "tags(" & strTags & ")"))
+            newReponses.Add(response)
+            responseTags.Merge(newTags)
+        Next
+
+        Locals.Output.Response() = newReponses
+        Return responseTags
+    End Function
+
+End Class
+
+Public Class User
+
+    Public Shared Property Sentence() As New NLP
+    Public Shared Property Name() As String = "Any"
+    Public Shared Property Previous() As String = ""
+
+    Public Shared Property Direct() As Memory
+        Get
+            Return Locals.Input()
+        End Get
+        Set(value As Memory)
+            Locals.Input() = value
+        End Set
+    End Property
+
+    Public Shared Sub Clear()
+        Locals.Output.Clear()
+        Locals.Input.Clear()
+    End Sub
+
+    Public Shared Property Profile() As String = "Standard"
+
+    Public Shared ReadOnly Property UserInput() As String
+        Get
+            Return Locals.Input.UserInput()
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property IsEmpty() As Boolean
+        Get
+            Return Utility.IsEmpty(Locals.Input.UserInput())
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property ToArray() As String()
+        Get
+            Return Sentence.ToArray()
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property ToList() As List(Of String)
+        Get
+            Return Sentence.ToList()
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property Ready() As Boolean
+        Get
+            Return Locals.Input.Ready()
+        End Get
+    End Property
+
+
+#Region "Tools"
+
+    Public Shared Function Search(ByVal find As String) As Boolean
+        Return Utility.Search(Locals.Input.UserInput(), find, Gate.eEQUALS)
+    End Function
+    Public Shared Function Search(ByVal find As String, ByVal eGate As Gate) As Boolean
+        Return Utility.Search(Locals.Input.UserInput(), find, eGate)
+    End Function
+    Public Shared Function Search(ByVal find As String()) As Boolean
+        Return Utility.Search(Locals.Input.UserInput(), find, Gate.eEQUALS)
+    End Function
+    Public Shared Function Search(ByVal find As String(), ByVal eGate As Gate) As Boolean
+        Return Utility.Search(Locals.Input.UserInput(), find, eGate)
+    End Function
+
+    Public Shared Function Search(ByVal find As Object(), ByVal skips As Integer(), ByVal limit As Integer, ByVal eNLPC As NLPC) As Boolean
+        Return Sentence.Search(find, skips, limit, eNLPC)
+    End Function
+    Public Shared Function Search(ByVal find As Object(), ByVal skips As Integer(), ByVal eNLPC As NLPC) As Boolean
+        Return Sentence.Search(find, skips, eNLPC)
+    End Function
+
+    Public Shared Function Search(ByVal find As String(), ByVal limit As Integer, ByVal eNLPC As NLPC) As Boolean
+        If GetSearchCount() > limit Then
+            Return False
+        End If
+
+        Return Sentence.SearchAll(find, eNLPC)
+    End Function
+    Public Shared Function Search(ByVal find As String(), ByVal eNLPC As NLPC) As Boolean
+        Return Sentence.SearchAll(find, eNLPC)
+    End Function
+
+    Public Shared Function GetIndex(ByVal index As Integer) As String
+        Return Utility.GetIndex(ToArray(), index, "")
+    End Function
+    Public Shared Function GetCount() As Integer
+        Return ToArray().Count()
+    End Function
+
+    Public Shared Function GetSearchIndex(ByVal index As Integer) As String()
+        Return Sentence.SearchIndex(index)
+    End Function
+    Public Shared Function GetSearchJIndex(ByVal index As Integer) As String
+        Return Sentence.SearchIndexJoined(index)
+    End Function
+    Public Shared Function GetSearchCount() As Integer
+        Return Sentence.Count()
+    End Function
+
+    Public Shared Function Contains(ByVal find As String(), ByVal eGate As Gate) As Boolean
+        Return Utility.Contains(Sentence.ToArray(), find, True, Gate.eEQUALS)
+    End Function
+
+    Public Shared Function GetArg(ByVal startarg As String, ByVal endarg As String) As String
+        Return Trim(GetMidArg(Locals.Input.UserInput(), startarg, endarg, Gate.eEQUALS))
+    End Function
+    Public Shared Function GetArg(ByVal startarg As String) As String
+        Return Trim(GetMidArg(Locals.Input.UserInput(), startarg, "", Gate.eEQUALS))
+    End Function
+#End Region
+
+
+End Class
+
+Public Class Avatar
+
+    Public Shared Property Name() As String = "Athena"
+    Public Shared Property Previous() As New List(Of String)
+
+    Public Shared Property Direct() As Memory
+        Get
+            Return Locals.Output()
+        End Get
+        Set(value As Memory)
+            Locals.Output() = value
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Response() As String
+        Set(ByVal value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Response.Add(value)
+            End If
+        End Set
+    End Property
+
+
+    Public Shared WriteOnly Property Status() As String
+        Set(ByVal value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Status.Add(value)
+            End If
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Status(ByVal index As Integer) As String
+        Set(ByVal value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Status() = SetIndex(Locals.Output.Status(), index, value)
+            End If
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Status(ByVal name As String) As String
+        Set(ByVal value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Status.Add(name & " = " & value)
+            End If
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Status(ByVal index As Integer, ByVal name As String) As String
+        Set(ByVal value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Status() = SetIndex(Locals.Output.Status(), index, name & " = " & value)
+            End If
+        End Set
+    End Property
+
+
+    Public Shared WriteOnly Property Script() As String
+        Set(value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Script() = value
+            End If
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Book() As String
+        Set(value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Book() = value
+            End If
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Code() As List(Of String)
+        Set(value As List(Of String))
+            If IsEmpty(value) = False Then
+                Locals.Output.Code() = value
+            End If
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Commands() As String
+        Set(value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Commands.Add(value)
+            End If
+        End Set
+    End Property
+
+    Public Shared WriteOnly Property Errors() As String
+        Set(value As String)
+            If IsEmpty(value) = False Then
+                Locals.Output.Errors.Add(value)
+            End If
+        End Set
+    End Property
+
+End Class
+
+Public Class Tamagotchi
+
+    Private Const DEF_TAM As String = "TAM_"
+    Public Const DEF_SCRIPT As String = "script"
+
+    Public Const STAT_HAPPY As String = "happy"
+    Public Const STAT_SAD As String = "sad"
+    Public Const STAT_ANGRY As String = "angry"
+    Public Const STAT_FEAR As String = "fear"
+    Public Const STAT_SURPRISE As String = "surprise"
+    Public Const STAT_DISCUST As String = "discust"
+    Public Const STAT_ASHAMED As String = "ashamed"
+    Public Const STAT_AMUSED As String = "amused"
+
+    Public Const STAT_SLEEPY As String = "sleepy"
+    Public Const STAT_HUNGRY As String = "hungry"
+    Public Const STAT_LONELY As String = "lonely"
+
+    Public Const STAT_FAVOR As String = "favor"
+
+    Public Const GROUP_OPINION As String = "opinion"
+    Public Const GROUP_DESIRE As String = "desire"
+    Public Const GROUP_EMOTION As String = "emotion"
+    Public Const GROUP_STATE As String = "state"
+
+    'emotions will slowly return to 0
+    'desires will slowly increase
+    'states remain the same
+
+
+    Public Shared Property StatsList() As New List(Of Stat)
+
+
+    Public Shared Sub Load()
+        CurrentEmotion() = Tables.Store(GROUP_EMOTION)
+        CurrentScript() = Tables.Store(DEF_SCRIPT)
+
+        'LOADS ONLY VALUES
+        For Each stats In StatsList()
+            stats.Value() = ToDbl(Tables.Store(DEF_TAM & stats.Name()), 0)
+        Next
+
+    End Sub
+    Public Shared Sub Save()
+        Tables.Store(GROUP_EMOTION) = CurrentEmotion()
+        Tables.Store(DEF_SCRIPT) = CurrentScript()
+
+        'SAVES ONLY VALUES
+        For Each stats In StatsList()
+            Tables.Store(DEF_TAM & stats.Name()) = ToStr(stats.Value())
+        Next
+
+        SuspendScriptSelect() = False
+        SuspendEmotionSelect() = False
+    End Sub
+
+
+    Public Shared Sub Initialize()
+
+        StatsList.Clear()
+
+        AddStat({GROUP_EMOTION}, STAT_HAPPY, "happy", 0, 1, 0, 100)
+        AddStat({GROUP_EMOTION}, STAT_SAD, "sad", 0, 1, 0, 100)
+        AddStat({GROUP_EMOTION}, STAT_ANGRY, "angry", 0, 1, 0, 100) 'fight
+        AddStat({GROUP_EMOTION}, STAT_FEAR, "fear", 0, 1, 0, 100) 'flight
+
+        AddStat({GROUP_EMOTION}, STAT_SURPRISE, "surprised", 0, 1, 0, 100) 'shock
+        AddStat({GROUP_EMOTION}, STAT_DISCUST, "disgusted", 0, 1, 0, 100) 'sick, gross
+        AddStat({GROUP_EMOTION}, STAT_ASHAMED, "ashamed", 0, 1, 0, 100) 'Embarressed
+        AddStat({GROUP_EMOTION}, STAT_AMUSED, "amused", 0, 1, 0, 100) 'unamused, board, - laughing, entertained
+
+
+        'states
+        'AddStat({GROUP_STATE}, "disappointed", "", 0, 1, 0, 100)
+        'AddStat({GROUP_STATE}, "confused", "", 0, 1, 0, 100) 'confounded
+        'AddStat({GROUP_STATE}, "confident", "", 0, 1, 0, 100) 'unsure-sure, timid-boldness
+        'AddStat({GROUP_STATE}, "weary", "", 0, 1, 0, 100) 'weary, exhausted
+        'AddStat({GROUP_STATE}, "stressed", "", 0, 1, 0, 100) 'relief-overwhelmed
+        'AddStat({GROUP_STATE}, "frustration", "", 0, 1, 0, 100) 'patience
+        'AddStat({GROUP_STATE}, "prideful", "", 0, 1, 0, 100) 'self-value or importance
+
+
+        'stats 
+        AddStat({GROUP_OPINION}, STAT_FAVOR, "", 0, 1, -100, 100) 'hate-love, openess
+
+        AddStat({GROUP_DESIRE}, STAT_HUNGRY, "", 0, 1, 0, 100)
+        AddStat({GROUP_DESIRE}, STAT_SLEEPY, "", 0, 1, 0, 100)
+        AddStat({GROUP_DESIRE}, STAT_LONELY, "", 0, 1, 0, 100)
+
+
+    End Sub
+
+    Public Shared Sub AddByGroup(ByVal group As String, ByVal int As Double)
+        For Each stats In StatsList()
+            If Search(group, stats.Group(), Gate.eEQUALS) = True Then
+                stats.Add(int)
+            End If
+        Next
+    End Sub
+    Public Shared Sub MinusByGroup(ByVal group As String, ByVal int As Double)
+        For Each stats In StatsList()
+            If Search(group, stats.Group(), Gate.eEQUALS) = True Then
+                stats.Minus(int)
+            End If
+        Next
+    End Sub
+
+    Public Shared Sub AddByName(ByVal name As String, ByVal int As Double)
+        For Each stats In StatsList()
+            If Search(stats.Name(), name, Gate.eEQUALS) = True Then
+                stats.Add(int)
+                Exit Sub
+            End If
+        Next
+    End Sub
+    Public Shared Sub MinusByName(ByVal name As String, ByVal int As Double)
+        For Each stats In StatsList()
+            If Search(stats.Name(), name, Gate.eEQUALS) = True Then
+                stats.Minus(int)
+                Exit Sub
+            End If
+        Next
+    End Sub
+
+    Public Shared Sub AddStat(ByVal group As String(), ByVal name As String, ByVal script As String, ByVal value As Double, ByVal growth As Double, ByVal minimum As Double, ByVal maximum As Double)
+        If IsStat(name) = False Then
+            Dim newStat As New Stat()
+            newStat.Group() = group
+            newStat.Name() = name
+            newStat.Script() = script
+            newStat.Value() = value
+            newStat.Growth() = growth
+            newStat.Minimum() = minimum
+            newStat.Maximum() = maximum
+            StatsList.Add(newStat)
+        End If
+    End Sub
+    Public Shared Sub AddStat(ByVal group As String(), ByVal name As String, ByVal script As String, ByVal value As Double, ByVal growth As Double)
+        If IsStat(name) = False Then
+            Dim newStat As New Stat()
+            newStat.Group() = group
+            newStat.Name() = name
+            newStat.Script() = script
+            newStat.Value() = value
+            newStat.Growth() = growth
+            StatsList.Add(newStat)
+        End If
+    End Sub
+    Public Shared Sub AddStat(ByVal group As String(), ByVal name As String, ByVal script As String, ByVal value As Double)
+        If IsStat(name) = False Then
+            Dim newStat As New Stat()
+            newStat.Group() = group
+            newStat.Name() = name
+            newStat.Script() = script
+            newStat.Value() = value
+            StatsList.Add(newStat)
+        End If
+    End Sub
+    Public Shared Sub AddStat(ByVal group As String(), ByVal name As String, ByVal value As Double)
+        If IsStat(name) = False Then
+            Dim newStat As New Stat()
+            newStat.Group() = group
+            newStat.Name() = name
+            newStat.Value() = value
+            StatsList.Add(newStat)
+        End If
+    End Sub
+    Public Shared Sub AddStat(ByVal group As String(), ByVal name As String)
+        If IsStat(name) = False Then
+            Dim newStat As New Stat()
+            newStat.Group() = group
+            newStat.Name() = name
+            StatsList.Add(newStat)
+        End If
+    End Sub
+
+    Public Shared Sub Reset(ByVal group As String)
+        For Each stats In StatsList()
+            If Search(group, stats.Group(), Gate.eEQUALS) = True Then
+                stats.Value() = 0
+            End If
+        Next
+    End Sub
+
+    Public Shared Sub Clear()
+        StatsList.Clear()
+    End Sub
+
+    Public Shared ReadOnly Property GetValue(ByVal name As String) As Double
+        Get
+            For Each stats In StatsList()
+                If Search(stats.Name(), name, Gate.eEQUALS) = True Then
+                    Return stats.Value()
+                End If
+            Next
+
+            Return 0
+        End Get
+    End Property
+    Public Shared WriteOnly Property SetValue(ByVal name As String) As Double
+        Set(value As Double)
+            For Each stats In StatsList()
+                If Search(stats.Name(), name, Gate.eEQUALS) = True Then
+                    stats.Value() = value
+                    Exit Property
+                End If
+            Next
+        End Set
+    End Property
+
+
+    Public Shared Function IsStat(ByVal name As String) As Boolean
+        For Each stats In StatsList()
+            If Search(stats.Name(), name, Gate.eEQUALS) = True Then
+                Return True
+            End If
+        Next
+
+        Return False
+    End Function
+
+    Public Shared Function Print() As String
+        Dim results As String = ""
+
+        For Each stats In StatsList()
+            results &= stats.Name() & " = " & stats.Value() & vbCrLf
+        Next
+
+        Return Trim(results)
+    End Function
+
+    Public Shared Property SuspendScriptSelect() As Boolean = False
+    Public Shared Property SuspendEmotionSelect() As Boolean = False
+
+    Private Shared m_currentscript As String = ""
+    Public Shared Property CurrentScript(Optional ByVal overwrite As Boolean = False) As String
+        Get
+            Return m_currentscript
+        End Get
+        Set(value As String)
+            If Search(m_currentscript, value, Gate.eEQUALS) = False Then
+                SuspendScriptSelect() = overwrite
+                Avatar.Script() = value
+                m_currentscript = value
+            End If
+        End Set
+    End Property
+
+    Private Shared m_currentemotion As String = ""
+    Public Shared Property CurrentEmotion(Optional ByVal overwrite As Boolean = False) As String
+        Get
+            Return m_currentemotion
+        End Get
+        Set(value As String)
+            SuspendEmotionSelect() = overwrite
+            Tags.MemoryTag(GROUP_EMOTION) = value
+            m_currentemotion = value
+        End Set
+    End Property
+
+
+    Public Shared Sub [Select]()
+        If SuspendEmotionSelect() = False Then SelectEmotion()
+        If SuspendScriptSelect() = False Then SelectScript()
+    End Sub
+
+    Public Shared Sub ProcessTags()
+        Dim args As String() = {}
+
+        args = Tags.DialogTags("script", True)
+        If args.Length = 1 Then
+            CurrentScript(True) = args(0)
+        End If
+        args = Tags.DialogTags("emotion", True)
+        If args.Length = 2 Then
+            If IsStat(args(0)) = True Then
+                Reset(GROUP_EMOTION)
+                SetValue(args(0)) = ToDbl(args(1), 0)
+                CurrentEmotion(True) = args(0)
+            End If
+        End If
+        args = Tags.DialogTags("setstat", True)
+        If args.Length = 2 Then
+            SetValue(args(0)) = ToDbl(args(1), 0)
+        End If
+        args = Tags.DialogTags("newstats", True)
+        If args.Length = 4 Then
+            AddStat({args(0)}, args(1), args(2), args(3))
+        End If
+        args = Tags.DialogTags("newemotion", True)
+        If args.Length = 3 Then
+            AddStat({GROUP_EMOTION}, args(0), args(1), args(2))
+        End If
+        args = Tags.DialogTags("addstat", True)
+        If args.Length = 2 Then
+            AddByName(args(0), ToDbl(args(1), 0))
+        End If
+        args = Tags.DialogTags("minstat", True)
+        If args.Length = 2 Then
+            MinusByName(args(0), ToDbl(args(1), 0))
+        End If
+
+        'sends stats to Tags (to be used in tables)
+        For Each stats In StatsList()
+            Tags.MemoryTag(stats.Name()) = ToStr(stats.Value(), "0")
+        Next
+
+    End Sub
+
+    Public Shared Function ProcessTick() As Boolean
+
+        'Emoticons that equalizes over time
+        MinusByGroup(GROUP_EMOTION, 0.1)
+
+
+        'Emoticons that gradually increase
+        AddByName(STAT_HUNGRY, 1)
+        AddByName(STAT_SLEEPY, 2)
+        AddByName(STAT_LONELY, 2)
+
+        'AddByGroup(GROUP_DESIRE, 1)
+
+        Select Case GetValue(STAT_HUNGRY)
+            Case 60 To 89
+
+                If Locals.Loops("hungry_1", 5) = True Then
+                    Avatar.Response() = "I am hungry"
+                    Return True
+                End If
+
+                Exit Select
+            Case > 90
+                Avatar.Response() = "I am so hungry!"
+                Avatar.Status() = "<avatar> is hungry."
+                IDS.Address(2, 1010)
+                CurrentEmotion(True) = STAT_SAD
+                SuspendTimer() = True
+
+                Return True
+        End Select
+
+        Select Case GetValue(STAT_SLEEPY)
+            Case 60 To 90
+
+                If Locals.Loops("sleepy_1", 5) = True Then
+                    Avatar.Response() = "I am sleepy."
+                    Return True
+                End If
+
+                Exit Select
+            Case > 90
+                Avatar.Response() = RandArray({"I am going to sleep.", "nighty night"}, "")
+                Avatar.Status() = "<avatar> is sleeping."
+                IDS.Address(2, 1008)
+                CurrentScript(True) = "asleep"
+                Sleep() = True
+                SuspendTimer() = True
+
+                Return True
+        End Select
+
+        Select Case GetValue(STAT_LONELY)
+            Case 60 To 90
+
+                If Locals.Loops("lonely_1", 3) = True Then
+                    Avatar.Response() = "I am lonely."
+                    Return True
+                End If
+
+                Exit Select
+            Case > 90
+
+                If Locals.Loops("lonely_2", 30) = True Then
+                    Avatar.Response() = "I am so lonely!"
+                    CurrentEmotion(True) = STAT_SAD
+                    Return True
+                End If
+
+                Exit Select
+        End Select
+
+        Select Case GetValue(STAT_FAVOR)
+            Case < -90
+
+                If Locals.Loops("favor_1", 30) = True Then
+                    If RandBool() = True Then
+                        Avatar.Response() = "I do not like you at all!"
+                    Else
+                        Avatar.Response() = Tables.GetFromLists(Column.Insults(), Locals.Filter(), "I do not like you at all!")
+                    End If
+                    Return True
+                End If
+
+                Exit Select
+            Case -90 To -60
+
+                If Locals.Loops("favor_2", 3) = True Then
+                    Avatar.Response() = "I think I dislike you."
+                    Return True
+                End If
+
+                Exit Select
+            Case -59 To 59
+                'Neutral
+                Exit Select
+            Case 60 To 90
+
+                If Locals.Loops("favor_3", 3) = True Then
+                    Avatar.Response() = "I think I like you."
+                    Return True
+                End If
+
+                Exit Select
+            Case > 90
+
+                If Locals.Loops("favor_4", 30) = True Then
+                    If RandBool() = True Then
+                        Avatar.Response() = "I like you allot!"
+                    Else
+                        Avatar.Response() = Tables.GetFromLists(Column.Compliments(), Locals.Filter(), "I like you allot!")
+                    End If
+                    Return True
+                End If
+
+                Exit Select
+        End Select
+
+
+        Return False
+    End Function
+
+    Public Shared Property Sleep() As Boolean = False
+    Public Shared Sub GeneralTick()
+
+        If Sleep() = True Then
+            If GetValue(STAT_SLEEPY) = 0 Then
+                Avatar.Status() = "<avatar> is awake."
+                IDS.Clear()
+                Sleep() = False
+                SuspendTimer() = False
+                Exit Sub
+            End If
+
+            If RandBool(10) = True Then
+                If Locals.Loops("local_dreams", 5) = True Then
+                    Avatar.Response() = Tables.GetFromLists(Column.Dreams(), Locals.Filter(), "")
+                End If
+            End If
+
+            MinusByName(STAT_SLEEPY, 1)
+            Exit Sub
+        End If
+
+    End Sub
+
+
+    Public Shared Property FoodLimit() As New List(Of String)
+    Public Shared Function Food() As Boolean
+
+        Dim Foods = Tables.GetList(Column.Foods(), Locals.Filter())
+        Foods.Add("cookie")
+        Foods.Add("chicken")
+        Foods.Add("steak")
+        Foods.Add("fish")
+        Foods.Add("carrot")
+
+
+        Dim args As String = ""
+        If User.Search("*please eat a *", Gate.eSEARCH) = True Then
+            args = User.GetArg("eat a")
+        End If
+        If User.Search("*try eating a *", Gate.eSEARCH) = True Then
+            args = User.GetArg("eating a")
+        End If
+
+        If Search(args, Foods, Gate.eEQUALS) = True Then
+
+            If Search(args, FoodLimit(), Gate.eEQUALS) = True Then
+                Avatar.Response() = "You have already fed me that. I want to eat something else."
+                Return True
+            End If
+
+            Avatar.Response() = RandArray({"Ok, Yummy >> 3 >> munch.. munch >> 2 >> that was good."}, "")
+
+            FoodLimit.Insert(0, Food)
+            If FoodLimit.Count() > 5 Then
+                FoodLimit.RemoveAt(FoodLimit.Count() - 1)
+            End If
+
+            MinusByName(STAT_HUNGRY, 10)
+            Return True
+        Else
+            Avatar.Response() = RandArray({"I don't want to eat that."}, "")
+            Return True
+        End If
+
+
+        Return False
+    End Function
+
+
+    Public Shared Function Process()
+        Dim results As String = ""
+
+        'insults
+        results = Tables.GeneralDetect(Table.INSULTS, True, Tags.Memory(), Locals.Filter())
+        If IsEmpty(results) = False Then
+            Avatar.Response() = results
+            MinusByName(STAT_FAVOR, 1)
+            Return results
+        End If
+
+        'compliments
+        results = Tables.GeneralDetect(Table.COMPLIMENTS, True, Tags.Memory(), Locals.Filter())
+        If IsEmpty(results) = False Then
+            Avatar.Response() = results
+            AddByName(STAT_FAVOR, 1)
+            Return results
+        End If
+
+
+        If User.Search({"*don't be lonely*", "I'm here*"}, Gate.eEQUALS) = True Then
+            MinusByName(STAT_LONELY, 30)
+            Avatar.Response() = "Thank you. That helps."
+            Return True
+        Else
+            MinusByName(STAT_LONELY, 10)
+        End If
+
+        If Food() = True Then Return True
+
+        If User.Search({"*take a nap*", "*go to sleep*", "*go to bed*"}, Gate.eEQUALS) = True Then
+            IDS.Address(2, 1008)
+            SuspendTimer() = True
+            Sleep() = True
+            Avatar.Response() = Resources.Comply()
+            Avatar.Status() = "<avatar> is sleeping."
+            Return True
+        End If
+
+        Avatar.Status() = "<avatar> is " & CurrentEmotion() & "."
+        Return False
+    End Function
+
+
+#Region "Private"
+
+    Private Shared Function GroupCount(ByVal group As String) As Integer
+        Dim count As Integer = 0
+
+        For Each stats In StatsList()
+            If Search(group, stats.Group(), Gate.eEQUALS) = True Then
+                count += 1
+            End If
+        Next
+
+        Return count
+    End Function
+
+    Private Shared Function GetGreatestStat(ByVal group As String) As Double
+        Dim newArray As New List(Of Double)
+
+        For Each stats In StatsList()
+            If Search(group, stats.Group(), Gate.eEQUALS) = True Then
+                newArray.Add(stats.Value())
+            End If
+        Next
+
+        Return GetGreater(newArray.ToArray())
+    End Function
+    Private Shared Function GetLeastStat(ByVal group As String) As Double
+        Dim newArray As New List(Of Double)
+
+        For Each stats In StatsList()
+            If Search(group, stats.Group(), Gate.eEQUALS) = True Then
+                newArray.Add(stats.Value())
+            End If
+        Next
+
+        Return GetLesser(newArray.ToArray())
+    End Function
+
+    Private Shared Sub SelectScript()
+        For Each stats In StatsList()
+            If Search(CurrentEmotion(), stats.Name(), Gate.eEQUALS) = True Then
+
+                CurrentScript() = stats.Script()
+                Exit Sub
+            End If
+        Next
+    End Sub
+    Private Shared Sub SelectEmotion()
+        'this selects the dominant emotion based upon emotion/states threshold variables
+        Dim choose As New List(Of String)
+        Dim highest = GetGreatestStat(GROUP_EMOTION)
+        Dim count As Integer = 0
+
+        For Each stats In StatsList()
+            If Search(GROUP_EMOTION, stats.Group(), Gate.eEQUALS) = True Then
+                If stats.Value = highest Then choose.Add(stats.Name())
+                count += 1
+            End If
+        Next
+
+        Dim choice As String = ""
+        If choose.Count() = count Then
+            choice = "happy"
+        Else
+            choice = RandArray(choose, "happy")
+        End If
+
+        If choose.Count() > 1 Then
+            AddByName(choice, 10)
+        End If
+
+        CurrentEmotion() = choice
+    End Sub
+
+#End Region
+
+
+    Public Class Stat
+
+        Sub New()
+
+        End Sub
+
+        Public Property Name() As String = ""
+        Public Property Value() As Double = 0
+        Public Property Growth() As Double = 1
+        Public Property Maximum() As Double = 0
+        Public Property Minimum() As Double = 0
+        Public Property Script() As String = ""
+        Public Property Group() As String() = {}
+
+        Public Sub Add(ByVal int As Double)
+            Value() += (Growth() * int)
+            If Value() >= Maximum() Then Value() = Maximum()
+        End Sub
+        Public Sub Minus(ByVal int As Double)
+            Value() -= (Growth() * int)
+            If Value() <= Minimum() Then Value() = Minimum()
+        End Sub
+
+    End Class
+
+
+
+End Class
+
+Public Class GameWorld
+
+    Public Shared Property CurrentRoom() As String = "home"
+    Public Shared Property CurrentStory() As String = "origen"
+    Public Shared Property Inventory() As New List(Of String)
+    Public Shared Property IsPlaying() As Boolean = False
+
+
+    Public Shared Function Leads() As List(Of String)
+        Dim leadList As New List(Of String)
+        'origen
+        leadList.Add("You want to hear an interesting story?")
+
+
+        Return leadList
+    End Function
+
+
+    Public Shared Function Process(ByVal input As String) As String
+
+        'This is allows for creation of Interactive Fiction (aka Text Adventures)
+
+        Dim overwrite As Boolean = False
+        REM #GAMEWORLD
+
+        If overwrite = False Then
+
+
+            If Search(CurrentStory(), "origen", True, Gate.eEQUALS) = True Then
+
+
+                If Search(CurrentRoom(), "home", True, Gate.eEQUALS) = True Then
+
+                    'room
+                    If Search(input, {"examine surroundings", "examine room"}, True, Gate.eOR) = True Then
+                        Return "You are outside and it is very bright. You see a lamp over by the base of a juniper tree. Over to your left you see a door."
+                    End If
+
+
+                    'Lamp
+                    If Search(input, "examine lamp", True, Gate.eEQUALS) = True Then
+                        Return "It is a lamp."
+                    End If
+                    If Search(input, "get lamp", True, Gate.eEQUALS) = True Then
+                        Inventory.Add("lamp")
+                        Return "You are now carrying the lamp."
+                    End If
+
+                    'Sun
+                    If Search(input, "examine sun", True, Gate.eEQUALS) = True Then
+                        Return "It is the Sun. It's very bright."
+                    End If
+                    If Search(input, "get sun", True, Gate.eEQUALS) = True Then
+                        Return "I'm sorry. You do not have room in your inventory for the Sun."
+                    End If
+
+
+                    'Door
+                    If Search(input, "examine door", True, Gate.eEQUALS) = True Then
+                        Return "It is a door."
+                    End If
+                    If Search(input, "enter door", True, Gate.eEQUALS) = True Then
+                        Return "The door opens and you enter the kitchen."
+                    End If
+
+
+
+                ElseIf Search(CurrentRoom(), "kitchen", True, Gate.eEQUALS) = True Then
+
+                End If
+
+
+                If Search(input, "examine *", True, Gate.eEQUALS) = True Then
+                    Return "I do not understand what you want me to examine."
+                End If
+                If Search(input, "enter *", True, Gate.eEQUALS) = True Then
+                    Return "I do not understand what you want me to enter."
+                End If
+
+
+            Else
+
+            End If
+
+
+        End If
+
+
+        Return "I do not understand."
+
+    End Function
+
+
+
+
+
+
+End Class
+
+Public Class IDS
+    'For use with Nodules
+    'IDs (these are basically addresses which allow you to send data to any specific function) 
+
+    Public Shared Sub Address(ByVal mode As Integer, ByVal id As Integer)
+        IDS.Mode() = mode
+        IDS.ID() = id
+    End Sub
+    Public Shared Sub Address(ByVal mode As Integer, ByVal id As Integer, ByVal args() As String)
+        IDS.Mode() = mode
+        IDS.ID() = id
+        IDS.Args() = args
+    End Sub
+
+    Public Shared Property Mode() As Integer = 0
+    Public Shared Property Line() As Integer = 1
+    Public Shared Property ID() As Integer = 1000
+
+    Public Shared Property Args As String() = {}
+    Public Shared Property Args(ByVal index As Integer) As String
+        Get
+            Return GetIndex(Args(), index, "")
+        End Get
+        Set(value As String)
+            SetIndex(Args(), index, value)
+        End Set
+    End Property
+
+    Public Shared Sub Clear()
+        Mode() = 0
+        ID() = 1000
+        Line() = 1
+        Args() = {}
+    End Sub
+
+End Class
+
+Public Class Word
+    'This is for functions that you just want out of the way
+    'It helps to keep the code cleaner and more organized
+
+    Public Shared Property Source As New NLP
+
+    Public Shared Sub Load(ByVal location As String)
+        Source().Location() = location
+        Source().Load()
+
+        Dim overwrite As Boolean = False
+        REM #WORDLOAD
+
+        If overwrite = False Then
+            Source.POSDef() = {POS.ADJ, POS.ADV, POS.ART, POS.AUX, POS.CONJ, POS.INTR, POS.NOUN, POS.PREP, POS.PRO, POS.VERB}
+            Source.CATDef() = {"colors", "birds"}
+        End If
+    End Sub
+
+    Public Shared Sub Save()
+        Source.Save()
+    End Sub
+
+    Public Shared Sub Parse(Optional ByVal input As String = "")
+        If IsEmpty(input) = True Then
+            Source.Original() = User.UserInput()
+        Else
+            Source.Original() = input
+        End If
+
+        Source.Parse()
+
+        guess_pos()
+        guess_tags()
+
+        User.Sentence() = Source()
+    End Sub
+
+    Public Shared Function Index(ByVal int As Integer) As String()
+        Return Source.SEN(int)
+    End Function
+
+    Public Shared Function GetSynonym(ByVal word As String) As String
+        'ie. '<cow>' could return 'bovine'
+        Return GetSibling(word, NLPC.SYN)
+    End Function
+    Public Shared Function GetByCategory(ByVal word As String)
+        'ie '<color>' could return 'Red'
+        Return GetChild(word, NLPC.CAT)
+    End Function
+    Public Shared Function GetCategory(ByVal word As String)
+        'ie 'Red' could return '<color>'
+        Return GetParent(word, NLPC.CAT)
+    End Function
+    Public Shared Function GetByPOS(ByVal word As String)
+        'ie '<noun>' could return 'cow'
+        Return GetChild(word, NLPC.POS)
+    End Function
+    Public Shared Function GetPOS(ByVal word As String)
+        'ie 'cow' could return '<noun>'
+        Return GetParent(word, NLPC.POS)
+    End Function
+
+    Public Shared Function GetParent(ByVal word As String, ByVal eNLPC As NLPC) As String
+        Return Source.GetRandomParent(word, eNLPC)
+    End Function
+    Public Shared Function GetParent(ByVal word As String(), ByVal eNLPC As NLPC) As String
+        Return Source.Join(Source.GetRandomParent(word, eNLPC))
+    End Function
+
+    Public Shared Function GetSibling(ByVal word As String, ByVal eNLPC As NLPC) As String
+        Return Source.GetRandomSibling(word, eNLPC)
+    End Function
+    Public Shared Function GetSibling(ByVal word As String(), ByVal eNLPC As NLPC) As String
+        Return Source.Join(Source.GetRandomSibling(word, eNLPC))
+    End Function
+
+    Public Shared Function GetChild(ByVal word As String, ByVal eNLPC As NLPC) As String
+        Return Source.GetRandomChild(word, eNLPC)
+    End Function
+    Public Shared Function GetChild(ByVal word As String(), ByVal eNLPC As NLPC) As String
+        Return Source.Join(Source.GetRandomChild(word, eNLPC))
+    End Function
+
+    Public Shared Sub SetEntry(ByVal category As String, ByVal entry As String, ByVal eNLPC As NLPC)
+        Source.SetEntry(category, entry, eNLPC)
+    End Sub
+    Public Shared Sub SetEntry(ByVal category As String(), ByVal entry As String, ByVal eNLPC As NLPC)
+        Source.SetEntry(category, Source.Split(entry), eNLPC)
+    End Sub
+    Public Shared Sub SetEntry(ByVal category As String(), ByVal entry As String(), ByVal eNLPC As NLPC)
+        Source.SetEntry(category, entry, eNLPC)
+    End Sub
+
+    Public Shared Function DoesExist(ByVal category As String(), ByVal entry As String(), ByVal eNLPC As NLPC)
+        Return Source.DoesRelationExist(category, entry, eNLPC)
+    End Function
+    Public Shared Function DoesExist(ByVal category As String(), ByVal entry As String, ByVal eNLPC As NLPC)
+        Return Source.DoesRelationExist(category, Source.Split(entry), eNLPC)
+    End Function
+    Public Shared Function DoesExist(ByVal category As String, ByVal entry As String, ByVal eNLPC As NLPC)
+        Return Source.DoesRelationExist(category, entry, eNLPC)
+    End Function
+
+    Public Shared Function DoesExist(ByVal relationship As String, ByVal category As String, ByVal entry As String) As Boolean
+        Return Source.DoesRelationExist(relationship, category, entry, Gate.eEQUALS)
+    End Function
+    Public Shared Function DoesExist(ByVal relationship As String(), ByVal category As String(), ByVal entry As String()) As Boolean
+        Return Source.DoesRelationExist(relationship, category, entry, Gate.eEQUALS)
+    End Function
+
+    Public Shared Function Count() As Integer
+        Return Source.Count()
+    End Function
+
+    Private Shared Sub guess_pos()
+        'FINDING PARTS OF SPEECH
+        'Matches a discovered match from within the POSL array and then sets it within the POS (Parts of Speech) variable
+
+        'common
+        'articles, conjuctions, pronouns, auxileries, prepositions
+
+        'uncommon
+        'nouns, verbs, adjectives, adverbs
+
+        Dim overwrite As Boolean = False
+        REM #WORDPOS
+
+        If overwrite = False Then
+            If Source.Count() = 2 Then
+                If Source.Search({POS.PRO, Nothing}, Nothing, NLPC.POSL) = True Then
+                    'ie. I run
+                    Source.Update({POS.PRO, POS.VERB}, {0, 1}, NLPC.POS)
+
+                    'example
+                    'Source.SetEntry(NLP.DEF_POS, POS.VERB, Index(1))
+                End If
+
+                'ie. I am
+                Source.Update({POS.PRO, POS.AUX}, {0, 0}, NLPC.POS)
+            End If
+        End If
+
+        'this is used to set the POS variable even if none was set manually above
+        For i = 0 To Source.Count() - 1
+            Source.POS(i) = RandArray(Source.POSL(i), Nothing)
+        Next
+
+        'article, noun
+        'noun, adverb, verb
+        'preposition, article, noun
+        'preposition, article, noun, preposition
+        'article, noun, auxillary, tansitive, preposition, adverb, adjective 
+
+    End Sub
+
+    Private Shared Sub guess_tags()
+        'Here we extrapolate information from sentences into tags.
+
+        'ARG({"*"} is valid
+
+        Dim overwrite As Boolean = False
+        REM #WORDTAGS
+
+        If overwrite = False Then
+            If Source.Count() = 4 Then
+                If Source.Search({POS.NOUN, Nothing, Nothing, POS.NOUN}, {0, 1, 1, 0}, NLPC.POS) = True Then
+                    If Source.Search({Nothing, "has", "a", Nothing}, {1, 0, 0, 1}, NLPC.SEN) = True Then
+
+
+                        Source.Tags().Add("hasa", Index(3))
+                    End If
+                End If
+            End If
+
+
+            If Source.Count() = 5 Then
+                If Source.Search({POS.ART, Nothing, POS.AUX, POS.ART, Nothing}, {0, 1, 0, 0, 1}, NLPC.POS) = True Then
+                    If Source.Search({"a", Nothing, "Is", "a", Nothing}, {0, 1, 0, 0, 1}, NLPC.SEN) = True Then
+
+                        'guessing category
+                        Source.SetEntry(NLP.DEF_CAT, Index(4), Index(1))
+                    End If
+                End If
+            End If
+
+
+
+        End If
+
+    End Sub
+
+
+
+End Class
+
+Public Class Dialogs
+
+    Public Shared Property StoryList() As New List(Of Story)
+    Public Shared Property Story() As New Story
+    Public Shared Property IsPlaying() As Boolean = False
+    Public Shared Property Tier() As Integer = 1
+
+    Public Const DEF_PAGE As String = "page"
+    Public Const DEF_NAME As String = "story"
+    Public Const DEF_PLAY As String = "playstate"
+    Public Const DEF_REMOVE As String = "purgekey"
+    Public Const DEF_CHANCE As String = "chances"
+
+    Const DEF_TIER As String = "tier"
+    Const DEF_DETECT As String = "detect"
+    Const DEF_LEADS As String = "leads"
+    Const DEF_AVATAR As String = "avatar"
+    Const DEF_TYPE As String = "type"
+    Const DEF_INFO As String = "info"
+
+    Const DEF_SUSPEND_TAMAGOTCHI As String = "SuspendTamagotchi"
+    Const DEF_SUSPEND_LEADS As String = "SuspendLeads"
+    Const DEF_SUSPEND_TIMER As String = "SuspendTimer"
+
+    Const DEF_SEARCH As String = "search"
+    Const DEF_SKIPS As String = "skips"
+
+    Const DEF_QUERY As String = "query"
+    Const DEF_STORY As String = "story"
+    Const DEF_TIERPLUS As String = "+"
+    Const DEF_ANYNAME As String = "any"
+
+
+    Const DEF_TABLE As String = "table"
+
+    Private Structure SRCH
+        Public Const DEF_PLUGIN As String = "plugin"
+        Public Const DEF_SENTENCE As String = "sentence"
+        Public Const DEF_POS As String = "pos"
+        Public Const DEF_CATEGORY As String = "category"
+        Public Const DEF_ALLCATEGORY As String = "allcat"
+        Public Const DEF_ALLSENTENCE As String = "allsen"
+        Public Const DEF_ALLPOS As String = "allpos"
+        Public Const DEF_DETECT As String = "detect"
+
+        Public Const DEF_SEARCH As String = "search"
+        Public Const DEF_START As String = "start"
+        Public Const DEF_EQUALS As String = "equals"
+        Public Const DEF_END As String = "End"
+        Public Const DEF_NOT As String = "Not"
+
+        Public Const DEF_AND As String = "And"
+        Public Const DEF_NAND As String = "nand"
+        Public Const DEF_OR As String = "Or"
+        Public Const DEF_NOR As String = "nor"
+        Public Const DEF_XOR As String = "Xor"
+        Public Const DEF_XNOR As String = "xnor"
+        Public Const DEF_SEQ As String = "seq"
+
+        Public Const DEF_CSEARCH As String = "csearch"
+        Public Const DEF_CSTART As String = "cstart"
+        Public Const DEF_CEQUALS As String = "cequals"
+        Public Const DEF_CEND As String = "cEnd"
+        Public Const DEF_CNOT As String = "cNot"
+    End Structure
+
+    Public Shared Sub Load()
+        Dim files = GetAllFiles(Folders.Dialogs())
+        For Each file In files
+            Load(file)
+        Next
+    End Sub
+    Public Shared Sub Load(ByVal location As String)
+        'loading story
+        Dim newStory As New Story
+        newStory.Source() = location
+        newStory.Loadfile()
+        StoryList.Add(newStory)
+    End Sub
+
+    Public Shared Sub Reset()
+        IsPlaying() = False
+
+        For Each iStory In StoryList
+            If Search(iStory.Name(), Story.Name(), Gate.eEQUALS) = True Then
+                iStory.Reset()
+            End If
+        Next
+
+    End Sub
+
+    Public Shared Sub SaveMemory()
+        'this saves the conversational story and position
+        If IsEmpty(CurrentPage()) = False Then
+            If IsEmpty(Name()) = False Then
+                Tags.MemoryTag(DEF_PAGE) = CurrentPage()
+                Tags.MemoryTag(DEF_NAME) = Name()
+                Tags.MemoryTag(DEF_PLAY) = BoolToStr(IsPlaying())
+                Tags.MemoryTag(DEF_TIER) = ToStr(Tier())
+            End If
+        End If
+    End Sub
+    Public Shared Sub LoadMemory()
+        Dim story_name = Tags.MemoryTag(DEF_NAME, "standard")
+        Dim story_pos = Tags.MemoryTag(DEF_PAGE, "start")
+
+        CurrentPage(story_name) = story_pos
+
+        Tier() = ToInt(Tags.MemoryTag(DEF_TIER, "1"))
+        IsPlaying() = ToBool(Tags.MemoryTag(DEF_PLAY, "False"))
+    End Sub
+    Public Shared Sub ResetMemory()
+        Tags.Remove(DEF_PAGE, Gate.eEQUALS)
+        Tags.Remove(DEF_NAME, Gate.eEQUALS)
+        Tags.Remove(DEF_PLAY, Gate.eEQUALS)
+        Tags.Remove(DEF_TIER, Gate.eEQUALS)
+
+        Dim key = Tags.DialogTag(DEF_REMOVE, "")
+        Tags.Remove(key, Gate.eSEARCH)
+        Tags.Remove(DEF_REMOVE, Gate.eEQUALS)
+    End Sub
+
+
+    Public Shared Property CurrentPage(Optional ByVal name As String = "") As String
+        Get
+            Return Story.CurrentPage.Name()
+        End Get
+        Set(value As String)
+            If IsEmpty(value) = False Then
+                If IsEmpty(name) = False Then
+                    SetStory(name)
+                End If
+
+                If IsEmpty(name) = False Then
+                    Story.Load(value)
+                End If
+            End If
+        End Set
+    End Property
+
+    Public Shared ReadOnly Property Name() As String
+        Get
+            Return Story.Name()
+        End Get
+    End Property
+
+    Public Shared Sub Add(ByVal newStory As Story)
+        StoryList.Add(newStory)
+    End Sub
+
+    'Explore
+
+    Public Shared Function Plugins() As String
+        'This is used for Story processing
+        'A story can come with plugins which could be accessed here
+
+        Dim arg As String = ""
+        Dim overwrite As Boolean = False
+        REM #DIALOGPLUG
+
+        If overwrite = False Then
+            If Tables.Detect("Greetings", User.UserInput(), Gate.eSEARCH) = True Then
+                Return Tables.Respond("Greetings", Tags.Memory(), Locals.Filter())
+            End If
+        End If
+
+
+        Return ""
+    End Function
+
+    Public Shared Function Defaults() As String
+        'This is used for any post processing of any note/results found after node exploration
+        'ie. logic can be proformed if no detection is found in node, or no default is found resulting in an empty return
+
+        Dim arg As String = ""
+        Dim overwrite As Boolean = False
+        REM DEFAULTSPLUG
+
+        If overwrite = False Then
+
+        End If
+
+
+        Return ""
+    End Function
+
+    Public Shared Sub Process()
+        If IsPlaying() = True Then
+
+            Dim found = iExplore()
+
+            If found = True Then
+                Tags.Dialog() = GetTag()
+                Dim note = GetNote()
+
+                If IsEmpty(note) = False Then
+                    Avatar.Response() = note
+                Else
+                    Avatar.Response() = Defaults()
+                End If
+
+                Jump()
+            End If
+
+        End If
+    End Sub
+
+    Public Shared Function Explore() As Boolean
+        Story.Explorer(User.UserInput(), Nothing, Nothing, Tags.Memory())
+        Return Story.Commit()
+    End Function
+    Public Shared Function iExplore() As Boolean
+
+        Story.Commands(User.UserInput())
+        Story.JoinInherited()
+
+        If Story.CurrentInherited().Count() = 0 Then
+            IsPlaying() = False
+            Return False
+        End If
+
+        Dim NavList As New List(Of Story.Detection)
+        Dim defaults As New List(Of Story.Detection)
+        Dim defList As New List(Of Story.Detection)
+
+        For Each Nav In Story.CurrentInherited()
+
+            If Search(Nav.Detect, Story.DEFAULT_NAME, True, Gate.eEQUALS) = True Then
+                defaults.Add(Nav)
+                Continue For
+            End If
+
+            Dim iSearch = Nav.Tag.GetValue(DEF_SEARCH, 0, SRCH.DEF_SEARCH, True)
+            Dim skips = ToIntArray(Nav.Tag.GetValue(DEF_SKIPS, True))
+            Dim table = Nav.Tag.GetValue(DEF_TABLE, 0, "", True)
+
+            If Search(iSearch, SRCH.DEF_PLUGIN, True, Gate.eEQUALS) = True Then
+                'generic will take precidence over other search types if found
+                Story.CurrentPage().Note() = {Plugins()}
+                Return True
+            End If
+
+            If SearchMatrix(iSearch, Nav.Detect(), table, skips) = True Then
+                If Tags.DoTagsMatch(Nav.Tag(), Tags.Memory()) = True Then
+                    NavList.Add(Nav)
+                End If
+            End If
+
+        Next
+
+
+        If NavList.Count() > 0 Then
+            'if there is a rate difference then the highest rate will be chosen
+
+            Dim hasRates As Boolean = False
+            Dim sortedNavs = Story.SortNavigateByRate(NavList, hasRates)
+
+            If hasRates = False Then
+                Story.PreviewDetection() = Story.RandDetection(NavList)
+            Else
+                Story.PreviewDetection() = Story.GetIndex(sortedNavs, 0, sortedNavs.First)
+            End If
+
+            Return Story.Commit()
+        End If
+
+        For Each defnav In defaults
+            If Tags.DoTagsMatch(defnav.Tag(), Tags.Memory()) = True Then
+                defList.Add(defnav)
+            End If
+        Next
+
+        If defList.Count() > 0 Then
+            Story.PreviewDetection() = Story.RandDetection(defList)
+            Return Story.Commit()
+        End If
+
+        Return False
+    End Function
+
+    Public Shared Function GetTag() As Story.Tags
+        Return Story.GetTag()
+    End Function
+    Public Shared Function GetNote() As String
+
+        'used to set the chances of each item in an array to be chosen
+        Dim args = Tags.DialogTags(DEF_CHANCE, True)
+        If args.Length > 0 Then
+            Return Story.GetRandomNote(ToIntArray(args))
+        Else
+            Return Story.GetRandomNote()
+        End If
+    End Function
+
+    Public Shared Sub Jump()
+        Story.Jump()
+    End Sub
+
+    'Leads
+
+    Public Shared Function GetLeads() As List(Of String)
+        Dim newList As New List(Of String)
+
+        For Each iStory In StoryList
+            Dim meta = iStory.Metas()
+            Dim TierPlus = Search(meta.GetValue(DEF_TIER, 1, False), DEF_TIERPLUS, True, Gate.eEQUALS)
+            Dim localTier = ToInt(meta.GetValue(DEF_TIER, 0, "-1", True))
+            Dim localLeads = ToList(meta.GetValue(DEF_LEADS, True))
+            Dim localType = meta.GetValue(DEF_TYPE, 0, "", True)
+            Dim localAvatar = meta.GetValue(DEF_AVATAR, 0, "", True)
+
+            meta.Remove(DEF_DETECT)
+            meta.Remove(DEF_INFO)
+            meta.Remove(DEF_SKIPS)
+            meta.Remove(DEF_TABLE)
+            meta.Remove(DEF_SEARCH)
+
+            If localTier = Tier() Or localTier = -1 Or (localTier > Tier() And TierPlus = True) Then
+                If Search(localAvatar, {Avatar.Name(), DEF_ANYNAME}, True, Gate.eEQUALS) = True Then
+                    If Search(localType, DEF_STORY, True, Gate.eEQUALS) = True Then
+                        If Tags.DoTagsMatch(meta, Tags.Memory()) = True Then
+                            If localLeads.Count() > 0 Then
+                                newList.AddRange(localLeads)
+                            End If
+                        End If
+                    End If
+                End If
+            End If
+
+        Next
+
+        Return newList
+    End Function
+
+    Public Shared Function SelectStory()
+        'This selects a story based on the Meta data in the Story XML file.
+        'Usually a Lead will be utilized to entice the user into responding, 
+        'and thus selecting the story via detects or other means
+
+        For Each iStory In StoryList()
+            Dim meta = iStory.Metas()
+            Dim localType = meta.GetValue(DEF_TYPE, 0, "", True)
+            Dim localAvatar = meta.GetValue(DEF_AVATAR, 0, "", True)
+
+            meta.Remove(DEF_INFO)
+            meta.Remove(DEF_LEADS)
+
+            If Search(localType, DEF_STORY, True, Gate.eEQUALS) = True Then
+                If Search(localAvatar, Avatar.Name(), True, Gate.eEQUALS) = True Then
+
+                    Dim TierPlus = Search(meta.GetValue(DEF_TIER, 1, False), DEF_TIERPLUS, True, Gate.eEQUALS)
+                    Dim localTier = ToInt(meta.GetValue(DEF_TIER, 0, "-1", True))
+                    Dim DetectList = Trim(meta.GetValue(DEF_DETECT, True)) 'if there are multiple detects to search
+                    Dim localTable = meta.GetValue(DEF_TABLE, 0, "", True)
+
+                    'if localTeer is -1 then that Story will be in contention
+                    If localTier = -1 Then GoTo Line0
+                    If localTier = Tier() Or (localTier > Tier() And TierPlus = True) Then
+
+Line0:                  If IsEmpty(DetectList) = True Then GoTo Line1
+                        If IsEmpty(User.UserInput()) = True Then GoTo Line1
+
+                        Dim iSearch = meta.GetValue(DEF_SEARCH, 0, "", True)
+                        Dim skips = ToIntArray(meta.GetValue(DEF_SKIPS, True))
+
+                        If SearchMatrix(iSearch, DetectList, localTable, skips) = True Then
+
+Line1:                      If meta.Count() = 0 Then GoTo Line2
+                            If Tags.DoTagsMatch(meta, Tags.Memory()) = True Then
+                                Suspend(meta)
+                                Tags.Memory.Merge(meta)
+Line2:                          Story() = iStory
+                                IsPlaying() = True
+                                Return True
+                            End If
+                        End If
+
+                        'Add any other seach feature for stories here
+                    End If
+                End If
+            End If
+        Next
+
+        Return False
+    End Function
+
+    Private Shared Function SearchMatrix(ByVal iSearch As String, ByVal DetectList As String(), ByVal table As String, ByVal skips As Integer())
+
+        Dim detect = GetIndex(DetectList, 0, "")
+
+        'the Detectlist is simply divided by a deliminator
+        'the DetectSubList divides each DetectList Item further into separate words
+        'the dog eats|a cat meows|people swim
+        Dim DetectSubList(DetectList.Length() - 1) As Object
+        For i = 0 To DetectList.Length() - 1
+            If IsEmpty(DetectList(i)) = False Then
+                DetectSubList(i) = WordArray(DetectList(i))
+            Else
+                DetectSubList(i) = Nothing
+            End If
+        Next
+
+        'below are specialty searches
+        If Search(iSearch, SRCH.DEF_SENTENCE, True, Gate.eEQUALS) = True Then
+
+            If User.Sentence.Search(DetectSubList, skips, NLPC.SEN) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_POS, True, Gate.eEQUALS) = True Then
+
+            If User.Sentence.Search(DetectSubList, skips, NLPC.POS) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_CATEGORY, True, Gate.eEQUALS) = True Then
+
+            If User.Sentence.Search(DetectSubList, skips, NLPC.CAT) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_ALLCATEGORY, True, Gate.eEQUALS) = True Then
+
+            If User.Sentence.SearchAll(DetectList, NLPC.CAT) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_ALLSENTENCE, True, Gate.eEQUALS) = True Then
+
+            If User.Sentence.SearchAll(DetectList, NLPC.SEN) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_ALLPOS, True, Gate.eEQUALS) = True Then
+
+            If User.Sentence.SearchAll(DetectList, NLPC.POS) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_DETECT, True, Gate.eEQUALS) = True Then
+
+            If Tables.Detect(table, User.UserInput(), Gate.eSEARCH) = True Then
+                Return True
+            End If
+
+            'below are searches by strings
+        ElseIf Search(iSearch, SRCH.DEF_SEARCH, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), detect, Gate.eSEARCH) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_START, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), detect, Gate.eSTART) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_END, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), detect, Gate.eEND) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_EQUALS, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), detect, Gate.eEQUALS) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_NOT, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), detect, Gate.eNOT) = True Then
+                Return True
+            End If
+
+            'below are searches by array
+        ElseIf Search(iSearch, SRCH.DEF_AND, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), DetectList, Gate.eAND) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_NAND, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), DetectList, Gate.eNAND) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_OR, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), DetectList, Gate.eEQUALS) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_NOR, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), DetectList, Gate.eNOR) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_XOR, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), DetectList, Gate.eXOR) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_XNOR, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), DetectList, Gate.eXNOR) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_SEQ, True, Gate.eEQUALS) = True Then
+
+            If Search(User.UserInput(), DetectList, Gate.eSEQ) = True Then
+                Return True
+            End If
+
+            'below are searching arrays with arrays
+        ElseIf Search(iSearch, SRCH.DEF_CSEARCH, True, Gate.eEQUALS) = True Then
+
+            If Search(User.ToArray(), DetectList, True, Gate.eSEARCH) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_CSTART, True, Gate.eEQUALS) = True Then
+
+            If Search(User.ToArray(), DetectList, True, Gate.eSTART) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_CEND, True, Gate.eEQUALS) = True Then
+
+            If Search(User.ToArray(), DetectList, True, Gate.eEND) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_CEQUALS, True, Gate.eEQUALS) = True Then
+
+            If Search(User.ToArray(), DetectList, True, Gate.eEQUALS) = True Then
+                Return True
+            End If
+
+        ElseIf Search(iSearch, SRCH.DEF_CNOT, True, Gate.eEQUALS) = True Then
+
+            If Search(User.ToArray(), DetectList, True, Gate.eNOT) = True Then
+                Return True
+            End If
+
+        Else
+
+            If Search(User.UserInput(), DetectList, Gate.eEQUALS) = True Then
+                Return True
+            End If
+
+        End If
+
+        Return False
+    End Function
+
+    'Queries
+
+    Private Shared Function GetQueries() As List(Of Story)
+        Dim newDialogs As New List(Of Story)
+
+        For Each iStory In StoryList()
+            Dim meta = iStory.Metas()
+            Dim TierPlus = Search(meta.GetValue(DEF_TIER, 1, False), DEF_TIERPLUS, True, Gate.eEQUALS)
+            Dim localTier = ToInt(meta.GetValue(DEF_TIER, 0, "-1", True))
+            Dim localType = meta.GetValue(DEF_TYPE, 0, "", True)
+            Dim localAvatar = meta.GetValue(DEF_AVATAR, 0, "", True)
+
+            meta.Remove(DEF_DETECT)
+            meta.Remove(DEF_INFO)
+            meta.Remove(DEF_LEADS)
+            meta.Remove(DEF_SKIPS)
+            meta.Remove(DEF_TABLE)
+            meta.Remove(DEF_SEARCH)
+
+            If Search(localType, DEF_QUERY, True, Gate.eEQUALS) = True Then
+                If Search(localAvatar, {Avatar.Name(), DEF_ANYNAME}, True, Gate.eEQUALS) = True Then
+                    If localTier = Tier() Or localTier = -1 Or (localTier > Tier() And TierPlus = True) Then
+                        If Tags.DoTagsMatch(meta, Tags.Memory()) = True Then
+                            TempQueryMeta() = meta
+                            newDialogs.Add(iStory)
+                        End If
+                    End If
+                End If
+            End If
+        Next
+
+        Return newDialogs
+    End Function
+
+    Private Shared Property TempQueryStory() As New Story
+    Private Shared Property TempQueryMeta() As New Story.Tags
+
+    Public Shared Function SelectQuery() As String
+        'This sets a Questionair and poses a started question
+        'A story must be set here in order to narrow the choices of a lead answer
+        Dim newStory = RandStory(GetQueries())
+
+        If newStory IsNot Nothing Then
+            TempQueryStory() = newStory
+        Else
+            Return ""
+        End If
+
+        Dim localLeads = ToList(newStory.Metas().GetValue(DEF_LEADS))
+        Return RandArray(localLeads, "")
+    End Function
+
+    Public Shared Sub CommitQuery()
+        Story() = TempQueryStory()
+        Suspend(TempQueryMeta())
+        Tags.Memory.Merge(TempQueryMeta())
+        IsPlaying() = True
+    End Sub
+
+    Private Shared Function RandStory(ByVal storys As List(Of Story)) As Story
+        Dim max = storys.Count()
+        If max = 0 Then Return Nothing
+        Return storys(Rand(0, max - 1))
+    End Function
+
+    Private Shared Sub Suspend(ByRef localTags As Story.Tags)
+        SuspendTamagotchi() = ToBool(localTags.Index(DEF_SUSPEND_TAMAGOTCHI, "", True), False)
+        SuspendLeads() = ToBool(localTags.Index(DEF_SUSPEND_LEADS, "", True), True)
+        SuspendTimer() = ToBool(localTags.Index(DEF_SUSPEND_TIMER, "", True), True)
+    End Sub
+
+
+    Public Shared Function GetStory(ByVal name As String) As Story
+        For Each iStory In StoryList
+            If Search(iStory.Name(), name, Gate.eEQUALS) = True Then
+                Return iStory
+            End If
+        Next
+        Return New Story()
+    End Function
+    Public Shared Sub SetStory(ByVal name As String, Optional ByVal restart As Boolean = True)
+        For Each iStory In StoryList
+            If Search(iStory.Name(), name, Gate.eEQUALS) = True Then
+                If restart = True Then
+                    iStory.Reset()
+                End If
+
+                Story() = iStory
+                Exit Sub
+            End If
+        Next
+    End Sub
+
+
+End Class
+
+Public Class Connect
+    'This is used to connect to the major input and output files
+    'This allows for talking with the User-Interface
+
+    Public Shared ReadOnly Property Input() As Memory
+        Get
+            Dim ReadMemory As New Memory
+            ReadMemory.Location() = Files.Output()
+            ReadMemory.Load()
+
+            Dim WriteMemory As New Memory
+            WriteMemory.Location() = Files.Output()
+            WriteMemory.Clear()
+            WriteMemory.Save()
+            Return ReadMemory
+        End Get
+    End Property
+
+    Public Shared WriteOnly Property Output() As Memory
+        Set(ByVal value As Memory)
+            Dim WriteMemory As New Memory
+            WriteMemory = value
+            WriteMemory.Location() = Files.Input()
+            WriteMemory.Ready() = True
+            WriteMemory.Save()
+        End Set
+    End Property
+
+End Class
+
+Public Class Resources
+
+    Public Shared ReadOnly Property Processed() As String
+        Get
+            Return RandArray({"I will process this.",
+                "Thank you For this information."}, "")
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property NoAnswer() As String
+        Get
+            Return RandArray({"I have no answer For you.",
+                "I could Not Get this information."}, "")
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property Comply() As String
+        Get
+            Return RandArray({"Sure, I can Do that.",
+                "I will Do that For you."}, "")
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property Remember() As String
+        Get
+            Return RandArray({"Sure I will remember that.",
+                           "I will store that."}, "")
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property Ignore() As String
+        Get
+            Return RandArray({"I will ignore it.",
+                "Sure, I will Do As you ask."}, "")
+        End Get
+    End Property
+    Public Shared ReadOnly Property IgnoreList() As String()
+        Get
+            Return {"ignore", "escape"}
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property ToContinue() As String
+        Get
+            Return RandArray({"Continue..."}, "")
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property YesList() As String()
+        Get
+            Return {"yes", "yep", "affirmative", "correct", "indeed", "True", "yeah", "amen", "ok"}
+        End Get
+    End Property
+
+    Public Shared ReadOnly Property Magic8List() As String()
+        Get
+            Return {"It Is certain.",
+                "It Is decidedly so.",
+                "Without a doubt.",
+                "Yes definitely.",
+                "You may rely On it.",
+                "As I see it, yes.",
+                "Most likely.",
+                "Outlook good.",
+                "Yes.",
+                "Signs point to yes.",
+                "Reply hazy try again.",
+                "Ask again later.",
+                "Better not tell you now.",
+                "Cannot predict now.",
+                "Concentrate and ask again.",
+                "Don't count on it.",
+                "My reply is no.",
+                "My sources say no.",
+                "Outlook not so good.",
+                "Very doubtful."}
+        End Get
+    End Property
+
+End Class
+
+REM #CLASSES
